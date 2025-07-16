@@ -1,0 +1,159 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int     @id @default(autoincrement()) @map("ID")
+  name     String  @map("Name") @db.VarChar(30)
+  userName String  @map("UserName") @db.VarChar(20)
+  password String  @default("Abc_123") @map("Password") @db.VarChar(20)
+  active   Boolean @default(true) @map("Active")
+
+  // Relations
+  unitAccess UnitAccess[]
+  pageAccess PageAccess[]
+  sales      Sale[]
+  expenses   Expense[]
+
+  @@map("DBT_Users")
+}
+
+model Unit {
+  id      Int     @id @default(autoincrement()) @map("ID")
+  unit    String  @map("Unit") @db.VarChar(30)
+  address String  @map("Address") @db.VarChar(99)
+  phone   String  @map("Phone") @db.VarChar(12)
+  email   String  @default("Abc_123") @map("Email") @db.VarChar(99)
+  active  Boolean @default(true) @map("Active")
+
+  // Relations
+  products     Product[]
+  unitAccess   UnitAccess[]
+  businessPlan BusinessPlan[]
+  sales        Sale[]
+  expenses     Expense[]
+
+  @@map("DBT_Units")
+}
+
+model Product {
+  id          Int     @id @default(autoincrement()) @map("ID")
+  idUnit      Int     @map("ID_Unit")
+  productName String  @map("ProductName") @db.VarChar(30)
+  sellPrice   Float   @map("SellPrice")
+  marginPerc  Float   @map("MarginPerc")
+  active      Boolean @default(true) @map("Active")
+
+  // Relations
+  unit Unit @relation(fields: [idUnit], references: [id])
+
+  @@map("DBT_Products")
+}
+
+model PaymentType {
+  id          Int     @id @default(autoincrement()) @map("ID")
+  name        String  @map("Name") @db.VarChar(30)
+  abreviation String  @map("Abreviation") @db.VarChar(2)
+  active      Boolean @default(true) @map("Active")
+
+  // Relations
+  sales    Sale[]
+  expenses Expense[]
+
+  @@map("DBT_PaymentTypes")
+}
+
+model UnitAccess {
+  id     Int @id @default(autoincrement()) @map("ID")
+  idUnit Int @map("ID_Unit")
+  idUser Int @map("ID_User")
+
+  // Relations
+  unit Unit @relation(fields: [idUnit], references: [id])
+  user User @relation(fields: [idUser], references: [id])
+
+  @@map("DBT_UnitAccess")
+}
+
+model PageAccess {
+  id              Int     @id @default(autoincrement()) @map("ID")
+  idUser          Int     @map("ID_User")
+  pgSales         Boolean @default(false) @map("pgSales")
+  pgSalesConfirm  Boolean @default(false) @map("pgSalesConfirm")
+  pgSalesOverview Boolean @default(false) @map("pgSalesOverview")
+  pgExpenses      Boolean @default(false) @map("pgExpenses")
+  pgExpensesView  Boolean @default(false) @map("pgExpensesView")
+  pgResult        Boolean @default(false) @map("pgResult")
+  pgBusiness      Boolean @default(false) @map("pgBusiness")
+  pgAccounts      Boolean @default(false) @map("pgAccounts")
+
+  // Relations
+  user User @relation(fields: [idUser], references: [id])
+
+  @@map("DBT_PageAccess")
+}
+
+model BusinessPlan {
+  id           Int   @id @default(autoincrement()) @map("ID")
+  idUnit       Int   @map("ID_Unit")
+  year         Int   @map("Year")
+  month        Int   @default(1) @map("Month") // 1-12
+  revenue      Int   @map("Revenue")
+  indirectPerc Float @map("IndirectPerc")
+  tax          Int   @map("Tax")
+  ooc          Int   @map("OOC")
+
+  // Relations
+  unit Unit @relation(fields: [idUnit], references: [id])
+
+  @@map("DBT_BusinessPlan")
+}
+
+model Sale {
+  id            Int      @id @default(autoincrement()) @map("ID")
+  idUser        Int      @map("ID_User")
+  idUnit        Int      @map("ID_Unit")
+  idPaymentType Int      @map("ID_PaymentType")
+  amount        Int      @map("Amount")
+  productName   String   @default("0") @map("ProductName") @db.VarChar(30)
+  sellPrice     Float    @default(0) @map("SellPrice")
+  marginPerc    Float    @default(0) @map("MarginPerc")
+  datetime      DateTime @default(now()) @map("Datetime")
+  confirmed     Boolean  @default(false) @map("Confirmed")
+  active        Boolean  @default(true) @map("Active")
+
+  // Relations
+  user        User        @relation(fields: [idUser], references: [id])
+  unit        Unit        @relation(fields: [idUnit], references: [id])
+  paymentType PaymentType @relation(fields: [idPaymentType], references: [id])
+
+  @@map("DBT_Sales")
+}
+
+model Expense {
+  id            Int      @id @default(autoincrement()) @map("ID")
+  idUser        Int      @map("ID_User")
+  idUnit        Int      @map("ID_Unit")
+  idPaymentType Int      @map("ID_PaymentType")
+  vendor        Int      @map("Vendor")
+  description   String   @default("0") @map("Description") @db.VarChar(30)
+  cost          Float    @default(0) @map("Cost")
+  category      String   @default("D") @map("Category") @db.VarChar(1) // Values of (D,I,O,T)
+  datetime      DateTime @default(now()) @map("Datetime")
+  active        Boolean  @default(true) @map("Active")
+
+  // Relations
+  user        User        @relation(fields: [idUser], references: [id])
+  unit        Unit        @relation(fields: [idUnit], references: [id])
+  paymentType PaymentType @relation(fields: [idPaymentType], references: [id])
+
+  @@map("DBT_Expenses")
+}
