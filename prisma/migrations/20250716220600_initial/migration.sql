@@ -1,0 +1,149 @@
+-- CreateTable
+CREATE TABLE "DBT_Users" (
+    "ID" SERIAL NOT NULL,
+    "Name" VARCHAR(30) NOT NULL,
+    "UserName" VARCHAR(20) NOT NULL,
+    "Password" VARCHAR(20) NOT NULL DEFAULT 'Abc_123',
+    "Active" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "DBT_Users_pkey" PRIMARY KEY ("ID")
+);
+
+-- CreateTable
+CREATE TABLE "DBT_Units" (
+    "ID" SERIAL NOT NULL,
+    "Unit" VARCHAR(30) NOT NULL,
+    "Address" VARCHAR(99) NOT NULL,
+    "Phone" VARCHAR(12) NOT NULL,
+    "Email" VARCHAR(99) NOT NULL DEFAULT 'Abc_123',
+    "Active" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "DBT_Units_pkey" PRIMARY KEY ("ID")
+);
+
+-- CreateTable
+CREATE TABLE "DBT_Products" (
+    "ID" SERIAL NOT NULL,
+    "ID_Unit" INTEGER NOT NULL,
+    "ProductName" VARCHAR(30) NOT NULL,
+    "SellPrice" DOUBLE PRECISION NOT NULL,
+    "MarginPerc" DOUBLE PRECISION NOT NULL,
+    "Active" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "DBT_Products_pkey" PRIMARY KEY ("ID")
+);
+
+-- CreateTable
+CREATE TABLE "DBT_PaymentTypes" (
+    "ID" SERIAL NOT NULL,
+    "Name" VARCHAR(30) NOT NULL,
+    "Abreviation" VARCHAR(2) NOT NULL,
+    "Active" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "DBT_PaymentTypes_pkey" PRIMARY KEY ("ID")
+);
+
+-- CreateTable
+CREATE TABLE "DBT_UnitAccess" (
+    "ID" SERIAL NOT NULL,
+    "ID_Unit" INTEGER NOT NULL,
+    "ID_User" INTEGER NOT NULL,
+
+    CONSTRAINT "DBT_UnitAccess_pkey" PRIMARY KEY ("ID")
+);
+
+-- CreateTable
+CREATE TABLE "DBT_PageAccess" (
+    "ID" SERIAL NOT NULL,
+    "ID_User" INTEGER NOT NULL,
+    "pgSales" BOOLEAN NOT NULL DEFAULT false,
+    "pgSalesConfirm" BOOLEAN NOT NULL DEFAULT false,
+    "pgSalesOverview" BOOLEAN NOT NULL DEFAULT false,
+    "pgExpenses" BOOLEAN NOT NULL DEFAULT false,
+    "pgExpensesView" BOOLEAN NOT NULL DEFAULT false,
+    "pgResult" BOOLEAN NOT NULL DEFAULT false,
+    "pgBusiness" BOOLEAN NOT NULL DEFAULT false,
+    "pgAccounts" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "DBT_PageAccess_pkey" PRIMARY KEY ("ID")
+);
+
+-- CreateTable
+CREATE TABLE "DBT_BusinessPlan" (
+    "ID" SERIAL NOT NULL,
+    "ID_Unit" INTEGER NOT NULL,
+    "Year" INTEGER NOT NULL,
+    "Month" INTEGER NOT NULL DEFAULT 1,
+    "Revenue" INTEGER NOT NULL,
+    "IndirectPerc" DOUBLE PRECISION NOT NULL,
+    "Tax" INTEGER NOT NULL,
+    "OOC" INTEGER NOT NULL,
+
+    CONSTRAINT "DBT_BusinessPlan_pkey" PRIMARY KEY ("ID")
+);
+
+-- CreateTable
+CREATE TABLE "DBT_Sales" (
+    "ID" SERIAL NOT NULL,
+    "ID_User" INTEGER NOT NULL,
+    "ID_Unit" INTEGER NOT NULL,
+    "ID_PaymentType" INTEGER NOT NULL,
+    "Amount" INTEGER NOT NULL,
+    "ProductName" VARCHAR(30) NOT NULL DEFAULT '0',
+    "SellPrice" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "MarginPerc" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "Datetime" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "Confirmed" BOOLEAN NOT NULL DEFAULT false,
+    "Active" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "DBT_Sales_pkey" PRIMARY KEY ("ID")
+);
+
+-- CreateTable
+CREATE TABLE "DBT_Expenses" (
+    "ID" SERIAL NOT NULL,
+    "ID_User" INTEGER NOT NULL,
+    "ID_Unit" INTEGER NOT NULL,
+    "ID_PaymentType" INTEGER NOT NULL,
+    "Vendor" INTEGER NOT NULL,
+    "Description" VARCHAR(30) NOT NULL DEFAULT '0',
+    "Cost" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "Category" VARCHAR(1) NOT NULL DEFAULT 'D',
+    "Datetime" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "Active" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "DBT_Expenses_pkey" PRIMARY KEY ("ID")
+);
+
+-- AddForeignKey
+ALTER TABLE "DBT_Products" ADD CONSTRAINT "DBT_Products_ID_Unit_fkey" FOREIGN KEY ("ID_Unit") REFERENCES "DBT_Units"("ID") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DBT_UnitAccess" ADD CONSTRAINT "DBT_UnitAccess_ID_Unit_fkey" FOREIGN KEY ("ID_Unit") REFERENCES "DBT_Units"("ID") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DBT_UnitAccess" ADD CONSTRAINT "DBT_UnitAccess_ID_User_fkey" FOREIGN KEY ("ID_User") REFERENCES "DBT_Users"("ID") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DBT_PageAccess" ADD CONSTRAINT "DBT_PageAccess_ID_User_fkey" FOREIGN KEY ("ID_User") REFERENCES "DBT_Users"("ID") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DBT_BusinessPlan" ADD CONSTRAINT "DBT_BusinessPlan_ID_Unit_fkey" FOREIGN KEY ("ID_Unit") REFERENCES "DBT_Units"("ID") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DBT_Sales" ADD CONSTRAINT "DBT_Sales_ID_User_fkey" FOREIGN KEY ("ID_User") REFERENCES "DBT_Users"("ID") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DBT_Sales" ADD CONSTRAINT "DBT_Sales_ID_Unit_fkey" FOREIGN KEY ("ID_Unit") REFERENCES "DBT_Units"("ID") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DBT_Sales" ADD CONSTRAINT "DBT_Sales_ID_PaymentType_fkey" FOREIGN KEY ("ID_PaymentType") REFERENCES "DBT_PaymentTypes"("ID") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DBT_Expenses" ADD CONSTRAINT "DBT_Expenses_ID_User_fkey" FOREIGN KEY ("ID_User") REFERENCES "DBT_Users"("ID") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DBT_Expenses" ADD CONSTRAINT "DBT_Expenses_ID_Unit_fkey" FOREIGN KEY ("ID_Unit") REFERENCES "DBT_Units"("ID") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DBT_Expenses" ADD CONSTRAINT "DBT_Expenses_ID_PaymentType_fkey" FOREIGN KEY ("ID_PaymentType") REFERENCES "DBT_PaymentTypes"("ID") ON DELETE RESTRICT ON UPDATE CASCADE;
