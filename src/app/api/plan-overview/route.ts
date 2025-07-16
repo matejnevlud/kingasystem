@@ -81,7 +81,6 @@ export async function GET(request: NextRequest) {
             where: {
                 idUnit: {in: unitIdNumbers},
                 active: true,
-                confirmed: true,
                 datetime: {
                     gte: fromDate,
                     lte: toDate,

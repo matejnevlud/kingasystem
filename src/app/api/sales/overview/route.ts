@@ -57,12 +57,11 @@ export async function GET(request: NextRequest) {
         // Set time to end of day for toDate
         toDate.setHours(23, 59, 59, 999);
 
-        // Fetch confirmed sales for the specified units and date range
+        // Fetch all sales for the specified units and date range (including unverified)
         const sales = await prisma.sale.findMany({
             where: {
                 idUnit: {in: unitIdNumbers},
                 active: true,
-                confirmed: true,
                 datetime: {
                     gte: fromDate,
                     lte: toDate,
