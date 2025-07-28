@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
         // Calculate real expenses by category
         const realDirect = expenses.filter(e => e.category === 'D').reduce((sum, e) => sum + e.cost, 0);
         const realIndirect = expenses.filter(e => e.category === 'I').reduce((sum, e) => sum + e.cost, 0);
-        const realFix = expenses.filter(e => e.category === 'T').reduce((sum, e) => sum + e.cost, 0);
+        const realFix = expenses.filter(e => e.category === 'F').reduce((sum, e) => sum + e.cost, 0);
         const realOoc = expenses.filter(e => e.category === 'O').reduce((sum, e) => sum + e.cost, 0);
         const realExpenses = realDirect + realIndirect + realFix + realOoc;
 
@@ -147,6 +147,11 @@ export async function GET(request: NextRequest) {
                 budget: budgetIndirect,
                 real: realIndirect,
                 ...calculateDelta(realIndirect, budgetIndirect),
+            },
+            ooc: {
+                budget: budgetOoc,
+                real: realOoc,
+                ...calculateDelta(realOoc, budgetOoc),
             },
             fix: {
                 budget: budgetFix,

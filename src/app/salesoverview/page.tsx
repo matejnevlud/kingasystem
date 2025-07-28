@@ -110,13 +110,12 @@ export default function SalesOverviewPage() {
         fetchUnits();
     }, [user]);
 
-    // Set default date range (last 30 days)
+    // Set default date range (first day of current month to current date)
     useEffect(() => {
         const today = new Date();
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(today.getDate() - 30);
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
 
-        setDateFrom(thirtyDaysAgo.toISOString().split('T')[0]);
+        setDateFrom(firstDay.toISOString().split('T')[0]);
         setDateTo(today.toISOString().split('T')[0]);
     }, []);
 

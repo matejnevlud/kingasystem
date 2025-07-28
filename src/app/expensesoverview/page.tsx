@@ -65,8 +65,8 @@ type UserSession = {
 const categoryOptions = [
     {value: 'D', label: 'Direct'},
     {value: 'I', label: 'Indirect'},
-    {value: 'O', label: 'Other'},
-    {value: 'T', label: 'Tax'}
+    {value: 'O', label: 'OOC'},
+    {value: 'F', label: 'Fix'}
 ];
 
 
@@ -160,13 +160,12 @@ export default function ExpensesOverviewPage() {
         fetchData();
     }, [user]);
 
-    // Set default date range (last 30 days)
+    // Set default date range (first day of current month to current date)
     useEffect(() => {
         const today = new Date();
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(today.getDate() - 30);
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
 
-        setDateFrom(thirtyDaysAgo.toISOString().split('T')[0]);
+        setDateFrom(firstDay.toISOString().split('T')[0]);
         setDateTo(today.toISOString().split('T')[0]);
     }, []);
 
@@ -590,8 +589,8 @@ export default function ExpensesOverviewPage() {
                                 <span className="font-bold">{(stats.byCategory.O || 0).toFixed(0)},-</span>
                             </div>
                             <div className="flex space-x-2">
-                                <span className="font-medium">T</span>
-                                <span className="font-bold">{(stats.byCategory.T || 0).toFixed(0)},-</span>
+                                <span className="font-medium">F</span>
+                                <span className="font-bold">{(stats.byCategory.F || 0).toFixed(0)},-</span>
                             </div>
                         </div>
                     </div>
@@ -721,7 +720,7 @@ export default function ExpensesOverviewPage() {
                                         onChange={handleInputChange}
                                         required
                                     >
-                                        <option value="">Direct/Indirect/OOC/Asset</option>
+                                        <option value="">Direct/Indirect/OOC/Fix</option>
                                         {categoryOptions.map((category) => (
                                             <option key={category.value} value={category.value}>
                                                 {category.label}

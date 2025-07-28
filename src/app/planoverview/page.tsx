@@ -34,6 +34,12 @@ type PlanOverviewData = {
         delta: number;
         deltaPercentage: number;
     };
+    ooc: {
+        budget: number;
+        real: number;
+        delta: number;
+        deltaPercentage: number;
+    };
     fix: {
         budget: number;
         real: number;
@@ -126,14 +132,13 @@ export default function PlanOverviewPage() {
         fetchUnits();
     }, [user]);
 
-    // Set default date range (current month)
+    // Set default date range (first day of current month to current date)
     useEffect(() => {
         const today = new Date();
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
         setDateFrom(firstDay.toISOString().split('T')[0]);
-        setDateTo(lastDay.toISOString().split('T')[0]);
+        setDateTo(today.toISOString().split('T')[0]);
     }, []);
 
     // Fetch plan overview data when filters change
@@ -199,21 +204,44 @@ export default function PlanOverviewPage() {
     };
 
     // Render data row
-    const renderDataRow = (label: string, data: any) => {
+    const renderDataRow = (label: string, data: any, isSubCategory: boolean = false) => {
         if (!data) return null;
 
+        // Check if this row should be bold (Revenue, Expenses, Profit)
+        const shouldBeBold = ['Revenue', 'Expenses', 'Profit'].includes(label);
+        
+        let rowClasses, textClasses, labelClasses;
+        
+        if (shouldBeBold) {
+            // Main categories (Revenue, Expenses, Profit)
+            rowClasses = "border-b border-gray-200 bg-gray-50 font-bold";
+            textClasses = "px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900";
+            labelClasses = "px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900";
+        } else if (isSubCategory) {
+            // Sub-categories (Direct, Indirect, Fix)
+            rowClasses = "border-b border-gray-100 bg-gray-25";
+            textClasses = "pl-12 pr-6 py-2 whitespace-nowrap text-sm text-gray-600";
+            labelClasses = "pl-12 pr-6 py-2 whitespace-nowrap text-sm text-gray-600 italic";
+        } else {
+            // Regular categories
+            rowClasses = "border-b border-gray-200";
+            textClasses = "px-6 py-4 whitespace-nowrap text-sm text-gray-900";
+            labelClasses = "px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900";
+        }
+
         return (
-            <tr key={label} className="border-b border-gray-200">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+            <tr key={label} className={rowClasses}>
+                <td className={labelClasses}>
+                    {isSubCategory && <span className="text-gray-400 mr-2">└</span>}
                     {label}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className={textClasses}>
                     {data.budget.toFixed(0)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className={textClasses}>
                     {data.real.toFixed(0)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className={textClasses}>
                     {formatDelta(data.delta)}
                 </td>
             </tr>
@@ -336,10 +364,11 @@ export default function PlanOverviewPage() {
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
                                 {renderDataRow('Revenue', planData.revenue)}
-                                {renderDataRow('Direct', planData.direct)}
-                                {renderDataRow('Indirect', planData.indirect)}
-                                {renderDataRow('Fix', planData.fix)}
                                 {renderDataRow('Expenses', planData.expenses)}
+                                {renderDataRow('Direct', planData.direct, true)}
+                                {renderDataRow('Indirect', planData.indirect, true)}
+                                {renderDataRow('OOC', planData.ooc, true)}
+                                {renderDataRow('Fix', planData.fix, true)}
                                 {renderDataRow('Profit', planData.profit)}
                                 </tbody>
                             </table>

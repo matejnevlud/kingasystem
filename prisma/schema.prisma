@@ -147,7 +147,7 @@ model Expense {
   vendor        String   @map("Vendor") @db.VarChar(50)
   description   String   @default("0") @map("Description") @db.VarChar(30)
   cost          Float    @default(0) @map("Cost")
-  category      String   @default("D") @map("Category") @db.VarChar(1) // Values of (D,I,O,T)
+  category      String   @default("D") @map("Category") @db.VarChar(1) // Values of (D,I,O,F)
   datetime      DateTime @default(now()) @map("Datetime")
   active        Boolean  @default(true) @map("Active")
 

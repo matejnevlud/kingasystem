@@ -51,8 +51,8 @@ type UserSession = {
 const categoryOptions = [
     {value: 'D', label: 'Direct'},
     {value: 'I', label: 'Indirect'},
-    {value: 'O', label: 'Other'},
-    {value: 'T', label: 'Tax'}
+    {value: 'O', label: 'OOC'},
+    {value: 'F', label: 'Fix'}
 ];
 
 
@@ -451,7 +451,7 @@ export default function ExpensesPage() {
                                         onChange={handleInputChange}
                                         required
                                     >
-                                        <option value="">Direct/Indirect/OOC/Tax</option>
+                                        <option value="">Direct/Indirect/OOC/Fix</option>
                                         {categoryOptions.map((category) => (
                                             <option key={category.value} value={category.value}>
                                                 {category.label}

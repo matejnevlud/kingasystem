@@ -1,9 +1,10 @@
 'use client';
 
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useMemo} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 import {Select} from 'flowbite-react';
+import {useSorting} from '../../hooks/useSorting';
 
 // Define types based on the Prisma schema
 type Unit = {
@@ -51,6 +52,9 @@ export default function AdminProductsPage() {
         marginPerc: '',
         active: true
     });
+    const [searchTerm, setSearchTerm] = useState('');
+    const [unitFilter, setUnitFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
     const router = useRouter();
 
     // Fetch user session on component mount
@@ -233,6 +237,22 @@ export default function AdminProductsPage() {
         setIsNewProduct(false);
     };
 
+    // Filter products based on search criteria
+    const filteredProducts = useMemo(() => {
+        return products.filter(product => {
+            const matchesSearch = product.productName.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesUnit = unitFilter === '' || product.idUnit.toString() === unitFilter;
+            const matchesStatus = statusFilter === '' || 
+                (statusFilter === 'active' && product.active) || 
+                (statusFilter === 'inactive' && !product.active);
+            
+            return matchesSearch && matchesUnit && matchesStatus;
+        });
+    }, [products, searchTerm, unitFilter, statusFilter]);
+
+    // Use sorting hook with filtered data
+    const { sortedData: sortedProducts, requestSort, getSortIcon, getSortClasses } = useSorting(filteredProducts, 'productName');
+
     return (
         <div className="absolute inset-0 bg-gray-50">
             <div className="bg-white shadow-md rounded-lg m-4 h-[calc(100vh-2rem)] flex flex-col">
@@ -256,6 +276,59 @@ export default function AdminProductsPage() {
                             Add Product
                         </button>
                     </div>
+                    
+                    {/* Filters */}
+                    <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Search by product name */}
+                        <div>
+                            <label htmlFor="searchTerm" className="block text-sm font-medium text-gray-700 mb-1">
+                                Search Product
+                            </label>
+                            <input
+                                type="text"
+                                id="searchTerm"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                placeholder="Search by product name..."
+                                className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                        </div>
+
+                        {/* Filter by unit */}
+                        <div>
+                            <label htmlFor="unitFilter" className="block text-sm font-medium text-gray-700 mb-1">
+                                Filter by Unit
+                            </label>
+                            <Select
+                                id="unitFilter"
+                                value={unitFilter}
+                                onChange={(e) => setUnitFilter(e.target.value)}
+                            >
+                                <option value="">All Units</option>
+                                {units.map((unit) => (
+                                    <option key={unit.id} value={unit.id}>
+                                        {unit.unit}
+                                    </option>
+                                ))}
+                            </Select>
+                        </div>
+
+                        {/* Filter by status */}
+                        <div>
+                            <label htmlFor="statusFilter" className="block text-sm font-medium text-gray-700 mb-1">
+                                Filter by Status
+                            </label>
+                            <Select
+                                id="statusFilter"
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                            >
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </Select>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Scrollable Content Area */}
@@ -276,22 +349,54 @@ export default function AdminProductsPage() {
                         </div>
                     )}
 
+                    {/* Results Count */}
+                    {!loading && (
+                        <div className="px-4 py-2 text-sm text-gray-600 bg-gray-50 border-b">
+                            Showing {sortedProducts.length} of {products.length} products
+                        </div>
+                    )}
+
                     {/* Products Table */}
                     {!loading && (
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sell Price</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Margin %</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th 
+                                        className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${getSortClasses('productName')}`}
+                                        onClick={() => requestSort('productName')}
+                                    >
+                                        Product Name {getSortIcon('productName')}
+                                    </th>
+                                    <th 
+                                        className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${getSortClasses('unit.unit')}`}
+                                        onClick={() => requestSort('unit.unit')}
+                                    >
+                                        Unit {getSortIcon('unit.unit')}
+                                    </th>
+                                    <th 
+                                        className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${getSortClasses('sellPrice')}`}
+                                        onClick={() => requestSort('sellPrice')}
+                                    >
+                                        Sell Price {getSortIcon('sellPrice')}
+                                    </th>
+                                    <th 
+                                        className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${getSortClasses('marginPerc')}`}
+                                        onClick={() => requestSort('marginPerc')}
+                                    >
+                                        Margin % {getSortIcon('marginPerc')}
+                                    </th>
+                                    <th 
+                                        className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${getSortClasses('active')}`}
+                                        onClick={() => requestSort('active')}
+                                    >
+                                        Status {getSortIcon('active')}
+                                    </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                {products.map((product) => (
+                                {sortedProducts.map((product) => (
                                     <tr key={product.id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             {product.productName}

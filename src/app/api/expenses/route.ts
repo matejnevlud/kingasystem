@@ -107,10 +107,10 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate category
-        const validCategories = ['D', 'I', 'O', 'T'];
+        const validCategories = ['D', 'I', 'O', 'F'];
         if (!validCategories.includes(category)) {
             return NextResponse.json(
-                {error: 'Invalid category. Must be one of: D, I, O, T'},
+                {error: 'Invalid category. Must be one of: D, I, O, F'},
                 {status: 400}
             );
         }
