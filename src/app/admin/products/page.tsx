@@ -4,7 +4,7 @@ import {useState, useEffect, useMemo} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 import {Select} from 'flowbite-react';
-import {useSorting} from '../../hooks/useSorting';
+import {useSorting} from '../../../hooks/useSorting';
 
 // Define types based on the Prisma schema
 type Unit = {
