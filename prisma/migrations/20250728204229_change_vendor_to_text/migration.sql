@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "DBT_Expenses" ALTER COLUMN "Vendor" SET DATA TYPE VARCHAR(50);

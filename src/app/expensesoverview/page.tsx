@@ -4,6 +4,8 @@ import {useState, useEffect} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 import {Select} from 'flowbite-react';
+import { useSorting } from '@/hooks/useSorting';
+import ImageUpload from '@/components/ImageUpload';
 
 // Define types based on the Prisma schema
 type Unit = {
@@ -22,12 +24,21 @@ type PaymentType = {
     active: boolean;
 };
 
+type ExpenseImage = {
+    id: number;
+    fileName: string;
+    filePath: string;
+    fileSize: number;
+    mimeType: string;
+    uploadedAt: string;
+};
+
 type Expense = {
     id: number;
     idUser: number;
     idUnit: number;
     idPaymentType: number;
-    vendor: number;
+    vendor: string;
     description: string;
     cost: number;
     category: string;
@@ -38,6 +49,7 @@ type Expense = {
         name: string;
         abreviation: string;
     };
+    images?: ExpenseImage[];
 };
 
 // Define the type for user session
@@ -57,13 +69,6 @@ const categoryOptions = [
     {value: 'T', label: 'Tax'}
 ];
 
-const vendorOptions = [
-    {value: 1, label: 'Vendor 1'},
-    {value: 2, label: 'Vendor 2'},
-    {value: 3, label: 'Vendor 3'},
-    {value: 4, label: 'Vendor 4'},
-    {value: 5, label: 'Vendor 5'}
-];
 
 export default function ExpensesOverviewPage() {
     const [units, setUnits] = useState<Unit[]>([]);
@@ -88,7 +93,11 @@ export default function ExpensesOverviewPage() {
         vendor: '',
         category: ''
     });
+    const [selectedExpenseImages, setSelectedExpenseImages] = useState<ExpenseImage[]>([]);
     const router = useRouter();
+    
+    // Initialize sorting
+    const { sortedData: sortedExpenses, requestSort, getSortIcon, getSortClasses } = useSorting(expenses, 'datetime');
 
     // Fetch user session on component mount
     useEffect(() => {
@@ -212,13 +221,14 @@ export default function ExpensesOverviewPage() {
     // Handle expense click (open edit modal)
     const handleExpenseClick = (expense: Expense) => {
         setSelectedExpense(expense);
+        setSelectedExpenseImages(expense.images || []);
         setFormData({
             datetime: new Date(expense.datetime).toISOString().slice(0, 16),
             unitId: expense.idUnit.toString(),
             paymentTypeId: expense.idPaymentType.toString(),
             amount: expense.cost.toString(),
             description: expense.description,
-            vendor: expense.vendor.toString(),
+            vendor: expense.vendor,
             category: expense.category
         });
         setIsEditModalOpen(true);
@@ -251,7 +261,7 @@ export default function ExpensesOverviewPage() {
                     paymentTypeId: parseInt(formData.paymentTypeId),
                     amount: parseFloat(formData.amount),
                     description: formData.description,
-                    vendor: parseInt(formData.vendor),
+                    vendor: formData.vendor,
                     category: formData.category
                 }),
             });
@@ -306,6 +316,29 @@ export default function ExpensesOverviewPage() {
         setIsEditModalOpen(false);
         setIsDeleteModalOpen(false);
         setSelectedExpense(null);
+        setSelectedExpenseImages([]);
+    };
+
+    // Handle image upload success in modal
+    const handleImagesUploaded = (images: ExpenseImage[]) => {
+        setSelectedExpenseImages(prev => [...prev, ...images]);
+        // Update the main expenses list
+        setExpenses(prev => prev.map(expense => 
+            expense.id === selectedExpense?.id 
+                ? {...expense, images: [...(expense.images || []), ...images]}
+                : expense
+        ));
+    };
+
+    // Handle image deletion in modal
+    const handleImageDelete = (imageId: number) => {
+        setSelectedExpenseImages(prev => prev.filter(img => img.id !== imageId));
+        // Update the main expenses list
+        setExpenses(prev => prev.map(expense => 
+            expense.id === selectedExpense?.id 
+                ? {...expense, images: expense.images?.filter(img => img.id !== imageId) || []}
+                : expense
+        ));
     };
 
     // Calculate totals and stats
@@ -429,62 +462,50 @@ export default function ExpensesOverviewPage() {
                     {/* Expenses Display - Responsive */}
                     {selectedUnitIds.length > 0 && (
                         <div className="px-4">
-                            {/* Desktop Table */}
-                            <div className="hidden md:block overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit/Cat</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                    {expenses.map((expense) => (
-                                        <tr
-                                            key={expense.id}
-                                            className="hover:bg-gray-50 cursor-pointer"
-                                            onClick={() => handleExpenseClick(expense)}
-                                        >
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {expense.description}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {new Date(expense.datetime).toLocaleDateString()}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {expense.unit?.unit || `Unit ${expense.idUnit}`} | {expense.category}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                {expense.cost.toFixed(0)},-
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {/* Mobile Table-like Layout */}
-                            <div className="md:hidden">
-                                {/* Mobile Table Header */}
+                            {/* Mobile-First Layout */}
+                            <div>
+                                {/* Sortable Header */}
                                 <div className="bg-gray-50 border-b border-gray-200 px-3 py-2 mb-1">
                                     <div className="grid grid-cols-4 gap-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        <div className="col-span-2">Description</div>
-                                        <div className="text-center">Date</div>
-                                        <div className="text-right">Total</div>
+                                        <div className="col-span-2">
+                                            <div 
+                                                className={`flex items-center space-x-1 ${getSortClasses('description')}`}
+                                                onClick={() => requestSort('description')}
+                                            >
+                                                <span>Description</span>
+                                                <span className="text-gray-400">{getSortIcon('description')}</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div 
+                                                className={`flex items-center justify-center space-x-1 ${getSortClasses('datetime')}`}
+                                                onClick={() => requestSort('datetime')}
+                                            >
+                                                <span>Date</span>
+                                                <span className="text-gray-400">{getSortIcon('datetime')}</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div 
+                                                className={`flex items-center justify-end space-x-1 ${getSortClasses('cost')}`}
+                                                onClick={() => requestSort('cost')}
+                                            >
+                                                <span>Total</span>
+                                                <span className="text-gray-400">{getSortIcon('cost')}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                {/* Mobile Table Rows */}
+                                {/* Table Rows */}
                                 <div className="space-y-1">
-                                    {expenses.map((expense) => (
+                                    {sortedExpenses.map((expense) => (
                                         <div
                                             key={expense.id}
                                             onClick={() => handleExpenseClick(expense)}
                                             className="bg-white border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
                                         >
-                                            {/* First Row - Main Info */}
+                                            {/* Main Info Row */}
                                             <div className="grid grid-cols-4 gap-2 px-3 py-2 items-center">
                                                 <div className="col-span-2">
                                                     <div className="text-sm font-medium text-gray-900 leading-tight">
@@ -503,12 +524,22 @@ export default function ExpensesOverviewPage() {
                                                 </div>
                                             </div>
                                             
-                                            {/* Second Row - Additional Info */}
+                                            {/* Additional Info Row */}
                                             <div className="grid grid-cols-4 gap-2 px-3 py-1 bg-gray-25 border-t border-gray-100">
-                                                <div className="col-span-2">
+                                                <div className="col-span-2 flex items-center space-x-2">
                                                     <span className="text-xs text-gray-500">
                                                         Tap to edit/delete
                                                     </span>
+                                                    {expense.images && expense.images.length > 0 && (
+                                                        <div className="flex items-center space-x-1">
+                                                            <svg className="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                            </svg>
+                                                            <span className="text-xs text-blue-500 font-medium">
+                                                                {expense.images.length}
+                                                            </span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="text-center">
                                                     <span className="text-xs text-gray-500">
@@ -667,19 +698,16 @@ export default function ExpensesOverviewPage() {
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Vendor
                                     </label>
-                                    <Select
+                                    <input
+                                        type="text"
                                         name="vendor"
                                         value={formData.vendor}
                                         onChange={handleInputChange}
+                                        placeholder="Vendor name"
+                                        maxLength={50}
+                                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required
-                                    >
-                                        <option value="">Vendor</option>
-                                        {vendorOptions.map((vendor) => (
-                                            <option key={vendor.value} value={vendor.value}>
-                                                {vendor.label}
-                                            </option>
-                                        ))}
-                                    </Select>
+                                    />
                                 </div>
 
                                 {/* Category */}
@@ -700,6 +728,19 @@ export default function ExpensesOverviewPage() {
                                             </option>
                                         ))}
                                     </Select>
+                                </div>
+
+                                {/* Images */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Images
+                                    </label>
+                                    <ImageUpload
+                                        expenseId={selectedExpense?.id}
+                                        onImagesUploaded={handleImagesUploaded}
+                                        existingImages={selectedExpenseImages}
+                                        onImageDelete={handleImageDelete}
+                                    />
                                 </div>
 
                                 {/* Modal Actions */}

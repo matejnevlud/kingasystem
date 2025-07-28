@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
                 idUser: userId,
                 idUnit: parseInt(unitId),
                 idPaymentType: parseInt(paymentTypeId),
-                vendor: parseInt(vendor),
+                vendor: vendor,
                 description: description,
                 cost: parseFloat(amount),
                 category: category,
@@ -170,6 +170,19 @@ export async function POST(request: NextRequest) {
                     select: {
                         name: true,
                         abreviation: true,
+                    },
+                },
+                images: {
+                    where: {
+                        active: true,
+                    },
+                    select: {
+                        id: true,
+                        fileName: true,
+                        filePath: true,
+                        fileSize: true,
+                        mimeType: true,
+                        uploadedAt: true,
                     },
                 },
             },

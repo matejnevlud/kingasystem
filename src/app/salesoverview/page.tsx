@@ -3,6 +3,7 @@
 import {useState, useEffect} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
+import { useSorting } from '@/hooks/useSorting';
 
 // Define types based on the Prisma schema
 type Unit = {
@@ -214,6 +215,15 @@ export default function SalesOverviewPage() {
         setSelectedSale(null);
     };
 
+    // Add computed total property for sorting
+    const salesWithTotal = sales.map(sale => ({
+        ...sale,
+        total: sale.sellPrice * sale.amount
+    }));
+    
+    // Initialize sorting
+    const { sortedData: sortedSales, requestSort, getSortIcon, getSortClasses } = useSorting(salesWithTotal, 'datetime');
+
     // Calculate totals and stats
     const calculateStats = () => {
         if (!sales.length) return {total: 0, byPaymentType: {}};
@@ -338,80 +348,53 @@ export default function SalesOverviewPage() {
                         <div className="px-4">
 
                             
-                            {/* Desktop Table */}
-                            <div className="hidden md:block overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                    {sales.map((sale) => (
-                                        <tr 
-                                            key={sale.id} 
-                                            className={`cursor-pointer transition-colors ${
-                                                sale.confirmed 
-                                                    ? 'hover:bg-gray-50' 
-                                                    : 'bg-orange-50 border-l-4 border-orange-400 hover:bg-orange-100'
-                                            }`} 
-                                            onClick={() => handleSaleUnlock(sale)}
-                                        >
-                                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                                                sale.confirmed ? 'text-gray-900' : 'text-orange-900 font-medium'
-                                            }`}>
-                                                {sale.productName}
-                                                {!sale.confirmed && (
-                                                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
-                                                        Unconfirmed
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                                                sale.confirmed ? 'text-gray-900' : 'text-orange-900'
-                                            }`}>
-                                                {sale.paymentType?.abreviation || 'UNK'}
-                                            </td>
-                                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                                                sale.confirmed ? 'text-gray-900' : 'text-orange-900'
-                                            }`}>
-                                                {sale.unit?.unit || `Unit ${sale.idUnit}`}
-                                            </td>
-                                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                                                sale.confirmed ? 'text-gray-900' : 'text-orange-900'
-                                            }`}>
-                                                {sale.amount}x
-                                            </td>
-                                            <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
-                                                sale.confirmed ? 'text-gray-900' : 'text-orange-900'
-                                            }`}>
-                                                {(sale.sellPrice * sale.amount).toFixed(0)},-
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {/* Mobile Table-like Layout */}
-                            <div className="md:hidden">
-                                {/* Mobile Table Header */}
+                            {/* Mobile-First Layout */}
+                            <div>
+                                {/* Sortable Header */}
                                 <div className="bg-gray-50 border-b border-gray-200 px-3 py-2 mb-1">
                                     <div className="grid grid-cols-5 gap-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        <div className="col-span-2">Description</div>
-                                        <div className="text-center">Payment</div>
-                                        <div className="text-center">Unit</div>
-                                        <div className="text-right">Total</div>
+                                        <div className="col-span-2">
+                                            <div 
+                                                className={`flex items-center space-x-1 ${getSortClasses('productName')}`}
+                                                onClick={() => requestSort('productName')}
+                                            >
+                                                <span>Description</span>
+                                                <span className="text-gray-400">{getSortIcon('productName')}</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div 
+                                                className={`flex items-center justify-center space-x-1 ${getSortClasses('paymentType.abreviation')}`}
+                                                onClick={() => requestSort('paymentType.abreviation')}
+                                            >
+                                                <span>Payment</span>
+                                                <span className="text-gray-400">{getSortIcon('paymentType.abreviation')}</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div 
+                                                className={`flex items-center justify-center space-x-1 ${getSortClasses('unit.unit')}`}
+                                                onClick={() => requestSort('unit.unit')}
+                                            >
+                                                <span>Unit</span>
+                                                <span className="text-gray-400">{getSortIcon('unit.unit')}</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div 
+                                                className={`flex items-center justify-end space-x-1 ${getSortClasses('total')}`}
+                                                onClick={() => requestSort('total')}
+                                            >
+                                                <span>Total</span>
+                                                <span className="text-gray-400">{getSortIcon('total')}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                {/* Mobile Table Rows */}
+                                {/* Table Rows */}
                                 <div className="space-y-1">
-                                    {sales.map((sale) => (
+                                    {sortedSales.map((sale) => (
                                         <div
                                             key={sale.id}
                                             onClick={() => handleSaleUnlock(sale)}
@@ -421,7 +404,7 @@ export default function SalesOverviewPage() {
                                                     : 'bg-orange-50 border-orange-300 border-l-4 border-l-orange-400 hover:bg-orange-100'
                                             }`}
                                         >
-                                            {/* First Row - Main Info */}
+                                            {/* Main Info Row */}
                                             <div className="grid grid-cols-5 gap-2 px-3 py-2 items-center">
                                                 <div className="col-span-2">
                                                     <div className={`text-sm font-medium leading-tight ${
@@ -458,7 +441,7 @@ export default function SalesOverviewPage() {
                                                 </div>
                                             </div>
                                             
-                                            {/* Second Row - Additional Info */}
+                                            {/* Additional Info Row */}
                                             <div className={`grid grid-cols-5 gap-2 px-3 py-1 border-t border-gray-100 ${
                                                 sale.confirmed ? 'bg-gray-25' : 'bg-orange-25'
                                             }`}>

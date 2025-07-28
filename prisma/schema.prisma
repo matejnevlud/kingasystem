@@ -144,7 +144,7 @@ model Expense {
   idUser        Int      @map("ID_User")
   idUnit        Int      @map("ID_Unit")
   idPaymentType Int      @map("ID_PaymentType")
-  vendor        Int      @map("Vendor")
+  vendor        String   @map("Vendor") @db.VarChar(50)
   description   String   @default("0") @map("Description") @db.VarChar(30)
   cost          Float    @default(0) @map("Cost")
   category      String   @default("D") @map("Category") @db.VarChar(1) // Values of (D,I,O,T)
@@ -155,6 +155,23 @@ model Expense {
   user        User        @relation(fields: [idUser], references: [id])
   unit        Unit        @relation(fields: [idUnit], references: [id])
   paymentType PaymentType @relation(fields: [idPaymentType], references: [id])
+  images      ExpenseImage[]
 
   @@map("DBT_Expenses")
+}
+
+model ExpenseImage {
+  id         Int      @id @default(autoincrement()) @map("ID")
+  idExpense  Int      @map("ID_Expense")
+  fileName   String   @map("FileName") @db.VarChar(255)
+  filePath   String   @map("FilePath") @db.VarChar(500)
+  fileSize   Int      @map("FileSize")
+  mimeType   String   @map("MimeType") @db.VarChar(100)
+  uploadedAt DateTime @default(now()) @map("UploadedAt")
+  active     Boolean  @default(true) @map("Active")
+
+  // Relations
+  expense Expense @relation(fields: [idExpense], references: [id])
+
+  @@map("DBT_ExpenseImages")
 }

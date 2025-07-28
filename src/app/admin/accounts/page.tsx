@@ -4,6 +4,7 @@ import {useState, useEffect} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 import {Select} from 'flowbite-react';
+import { useSorting } from '@/hooks/useSorting';
 
 // Define types based on the Prisma schema
 type Unit = {
@@ -94,6 +95,9 @@ export default function AccountsPage() {
         }
     });
     const router = useRouter();
+    
+    // Initialize sorting
+    const { sortedData: sortedUsers, requestSort, getSortIcon, getSortClasses } = useSorting(users, 'name');
 
     // Fetch user session on component mount
     useEffect(() => {
@@ -338,45 +342,82 @@ export default function AccountsPage() {
 
                     {/* Users Table */}
                     {!loading && (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Units</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                {users.map((user) => (
-                                    <tr
+                        <div>
+                            {/* Sortable Header */}
+                            <div className="bg-gray-50 border-b border-gray-200 px-3 py-2 mb-1">
+                                <div className="grid grid-cols-4 gap-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div 
+                                        className={`flex items-center space-x-1 ${getSortClasses('name')}`}
+                                        onClick={() => requestSort('name')}
+                                    >
+                                        <span>Name</span>
+                                        <span className="text-gray-400">{getSortIcon('name')}</span>
+                                    </div>
+                                    <div 
+                                        className={`flex items-center space-x-1 ${getSortClasses('userName')}`}
+                                        onClick={() => requestSort('userName')}
+                                    >
+                                        <span>Username</span>
+                                        <span className="text-gray-400">{getSortIcon('userName')}</span>
+                                    </div>
+                                    <div>Units</div>
+                                    <div 
+                                        className={`flex items-center justify-end space-x-1 ${getSortClasses('active')}`}
+                                        onClick={() => requestSort('active')}
+                                    >
+                                        <span>Status</span>
+                                        <span className="text-gray-400">{getSortIcon('active')}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* User Rows */}
+                            <div className="space-y-1">
+                                {sortedUsers.map((user) => (
+                                    <div
                                         key={user.id}
-                                        className="hover:bg-gray-50 cursor-pointer"
+                                        className="bg-white border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
                                         onClick={() => handleUserEdit(user)}
                                     >
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {user.name}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {user.userName}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {user.unitAccess.map(ua => ua.unit.unit).join(', ')}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            <span className={`px-2 py-1 text-xs rounded-full ${
-                                                user.active 
-                                                    ? 'bg-green-100 text-green-800' 
-                                                    : 'bg-red-100 text-red-800'
-                                            }`}>
-                                                {user.active ? 'Active' : 'Inactive'}
-                                            </span>
-                                        </td>
-                                    </tr>
+                                        {/* Main Info Row */}
+                                        <div className="grid grid-cols-4 gap-2 px-3 py-2 items-center">
+                                            <div>
+                                                <div className="text-sm font-medium text-gray-900 leading-tight">
+                                                    {user.name}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span className="text-sm text-gray-900">
+                                                    {user.userName}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="text-sm text-gray-600">
+                                                    {user.unitAccess.map(ua => ua.unit.unit).join(', ')}
+                                                </span>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className={`px-2 py-1 text-xs rounded-full ${
+                                                    user.active 
+                                                        ? 'bg-green-100 text-green-800' 
+                                                        : 'bg-red-100 text-red-800'
+                                                }`}>
+                                                    {user.active ? 'Active' : 'Inactive'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Additional Info Row */}
+                                        <div className="grid grid-cols-4 gap-2 px-3 py-1 bg-gray-25 border-t border-gray-100">
+                                            <div className="col-span-4">
+                                                <span className="text-xs text-gray-500">
+                                                    Tap to edit user details
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 ))}
-                                </tbody>
-                            </table>
+                            </div>
                         </div>
                     )}
                 </div>

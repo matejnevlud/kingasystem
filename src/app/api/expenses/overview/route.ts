@@ -85,6 +85,19 @@ export async function GET(request: NextRequest) {
                         abreviation: true,
                     },
                 },
+                images: {
+                    where: {
+                        active: true,
+                    },
+                    select: {
+                        id: true,
+                        fileName: true,
+                        filePath: true,
+                        fileSize: true,
+                        mimeType: true,
+                        uploadedAt: true,
+                    },
+                },
             },
             orderBy: {
                 datetime: 'desc',

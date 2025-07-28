@@ -100,7 +100,7 @@ export async function PUT(
             data: {
                 idUnit: parseInt(unitId),
                 idPaymentType: parseInt(paymentTypeId),
-                vendor: parseInt(vendor),
+                vendor: vendor,
                 description: description,
                 cost: parseFloat(amount),
                 category: category,

@@ -4,6 +4,7 @@ import {useState, useEffect} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 import {Select} from 'flowbite-react';
+import { useSorting } from '@/hooks/useSorting';
 
 // Define types based on the Prisma schema
 type Unit = {
@@ -79,6 +80,15 @@ export default function SalesConfirmationPage() {
     });
     const [selectedSaleIds, setSelectedSaleIds] = useState<Set<number>>(new Set());
     const router = useRouter();
+    
+    // Add computed total property for sorting
+    const salesWithTotal = sales.map(sale => ({
+        ...sale,
+        total: sale.sellPrice * sale.amount
+    }));
+    
+    // Initialize sorting
+    const { sortedData: sortedSales, requestSort, getSortIcon, getSortClasses } = useSorting(salesWithTotal, 'productName');
 
     // Fetch user session on component mount
     useEffect(() => {
@@ -341,10 +351,10 @@ export default function SalesConfirmationPage() {
 
     // Handle select all/none
     const handleSelectAll = () => {
-        if (selectedSaleIds.size === sales.length) {
+        if (selectedSaleIds.size === sortedSales.length) {
             setSelectedSaleIds(new Set());
         } else {
-            setSelectedSaleIds(new Set(sales.map(sale => sale.id)));
+            setSelectedSaleIds(new Set(sortedSales.map(sale => sale.id)));
         }
     };
 
@@ -438,27 +448,67 @@ export default function SalesConfirmationPage() {
                     {selectedUnitId && (
                         <div className="px-4">
                             {/* Desktop Table */}
-                            <div className="hidden md:block overflow-x-auto">
+                            <div style={{display: 'none'}}>
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             <input
                                                 type="checkbox"
-                                                checked={selectedSaleIds.size === sales.length && sales.length > 0}
+                                                checked={selectedSaleIds.size === sortedSales.length && sortedSales.length > 0}
                                                 onChange={handleSelectAll}
                                                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                             />
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                        <th 
+                                            className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${getSortClasses('productName')}`}
+                                            onClick={() => requestSort('productName')}
+                                        >
+                                            <div className="flex items-center space-x-1">
+                                                <span>Product</span>
+                                                <span className="text-gray-400">{getSortIcon('productName')}</span>
+                                            </div>
+                                        </th>
+                                        <th 
+                                            className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${getSortClasses('paymentType.abreviation')}`}
+                                            onClick={() => requestSort('paymentType.abreviation')}
+                                        >
+                                            <div className="flex items-center space-x-1">
+                                                <span>Payment</span>
+                                                <span className="text-gray-400">{getSortIcon('paymentType.abreviation')}</span>
+                                            </div>
+                                        </th>
+                                        <th 
+                                            className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${getSortClasses('sellPrice')}`}
+                                            onClick={() => requestSort('sellPrice')}
+                                        >
+                                            <div className="flex items-center space-x-1">
+                                                <span>Price</span>
+                                                <span className="text-gray-400">{getSortIcon('sellPrice')}</span>
+                                            </div>
+                                        </th>
+                                        <th 
+                                            className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${getSortClasses('amount')}`}
+                                            onClick={() => requestSort('amount')}
+                                        >
+                                            <div className="flex items-center space-x-1">
+                                                <span>Qty</span>
+                                                <span className="text-gray-400">{getSortIcon('amount')}</span>
+                                            </div>
+                                        </th>
+                                        <th 
+                                            className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${getSortClasses('total')}`}
+                                            onClick={() => requestSort('total')}
+                                        >
+                                            <div className="flex items-center space-x-1">
+                                                <span>Total</span>
+                                                <span className="text-gray-400">{getSortIcon('total')}</span>
+                                            </div>
+                                        </th>
                                     </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                    {sales.map((sale) => {
+                                    {sortedSales.map((sale) => {
                                         const isSelected = selectedSaleIds.has(sale.id);
                                         return (
                                             <tr
@@ -514,29 +564,59 @@ export default function SalesConfirmationPage() {
                                 </table>
                             </div>
 
-                            {/* Mobile Table-like Layout */}
-                            <div className="md:hidden">
-                                {/* Mobile Table Header */}
+                            {/* Mobile-First Layout */}
+                            <div>
+                                {/* Sortable Header */}
                                 <div className="bg-gray-50 border-b border-gray-200 px-3 py-2 mb-1">
                                     <div className="grid gap-2 text-xs font-medium text-gray-500 uppercase tracking-wider" style={{gridTemplateColumns: '1rem 1fr 4rem 4rem 4rem'}}>
                                         <div className="flex items-center justify-center">
                                             <input
                                                 type="checkbox"
-                                                checked={selectedSaleIds.size === sales.length && sales.length > 0}
+                                                checked={selectedSaleIds.size === sortedSales.length && sortedSales.length > 0}
                                                 onChange={handleSelectAll}
                                                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                             />
                                         </div>
-                                        <div>Product</div>
-                                        <div className="text-center">Payment</div>
-                                        <div className="text-center">Price</div>
-                                        <div className="text-right">Total</div>
+                                        <div 
+                                            className={`flex items-center space-x-1 ${getSortClasses('productName')}`}
+                                            onClick={() => requestSort('productName')}
+                                        >
+                                            <span>Product</span>
+                                            <span className="text-gray-400">{getSortIcon('productName')}</span>
+                                        </div>
+                                        <div className="text-center">
+                                            <div 
+                                                className={`flex items-center justify-center space-x-1 ${getSortClasses('paymentType.abreviation')}`}
+                                                onClick={() => requestSort('paymentType.abreviation')}
+                                            >
+                                                <span>Payment</span>
+                                                <span className="text-gray-400">{getSortIcon('paymentType.abreviation')}</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div 
+                                                className={`flex items-center justify-center space-x-1 ${getSortClasses('sellPrice')}`}
+                                                onClick={() => requestSort('sellPrice')}
+                                            >
+                                                <span>Price</span>
+                                                <span className="text-gray-400">{getSortIcon('sellPrice')}</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div 
+                                                className={`flex items-center justify-end space-x-1 ${getSortClasses('total')}`}
+                                                onClick={() => requestSort('total')}
+                                            >
+                                                <span>Total</span>
+                                                <span className="text-gray-400">{getSortIcon('total')}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 
                                 {/* Mobile Table Rows */}
                                 <div className="space-y-1">
-                                    {sales.map((sale) => {
+                                    {sortedSales.map((sale) => {
                                         const isSelected = selectedSaleIds.has(sale.id);
                                         return (
                                             <div
@@ -653,7 +733,7 @@ export default function SalesConfirmationPage() {
                                         {stats.selectedTotal.toFixed(0)},-
                                     </span>
                                     <span className="text-sm text-gray-600 ml-2">
-                                        ({selectedSaleIds.size} of {sales.length})
+                                        ({selectedSaleIds.size} of {sortedSales.length})
                                     </span>
                                 </div>
                                 <button
@@ -700,7 +780,7 @@ export default function SalesConfirmationPage() {
                                         SELECTED: {stats.selectedTotal.toFixed(0)},-
                                     </div>
                                     <div className="text-xs text-gray-600">
-                                        ({selectedSaleIds.size} of {sales.length})
+                                        ({selectedSaleIds.size} of {sortedSales.length})
                                     </div>
                                 </div>
                                 <div className="text-right">
