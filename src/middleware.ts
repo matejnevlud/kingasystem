@@ -27,14 +27,27 @@ export function middleware(request: NextRequest) {
 
         // If we're accessing the menu or a specific page, check permissions
         if (pathname !== '/' && pathname !== '/menu') {
-            // Extract the page name from the path
-            const pageName = pathname.split('/')[1];
+            // Map paths to their corresponding page access keys
+            const pathToPermissionMap: { [key: string]: keyof typeof session.pageAccess } = {
+                '/sales': 'pgSales',
+                '/salesconfirmation': 'pgSalesConfirm',
+                '/salesoverview': 'pgSalesOverview',
+                '/expenses': 'pgExpenses',
+                '/expensesoverview': 'pgExpensesView',
+                '/business': 'pgBusiness',
+                '/planoverview': 'pgResult'
+            };
 
-            // Check if user has access to this page
-            const pageAccessKey = `pg${pageName.charAt(0).toUpperCase() + pageName.slice(1)}` as keyof typeof session.pageAccess;
+            // Get the permission key for this path
+            let pageAccessKey = pathToPermissionMap[pathname];
 
-            if (!session.pageAccess[pageAccessKey] && false) {
-                // Redirect to menu if user doesn't have access to the page
+            // Handle admin paths (any path starting with /admin requires pgAdmin)
+            if (pathname.startsWith('/admin')) {
+                pageAccessKey = 'pgAdmin';
+            }
+
+            // If we have a mapping and the user doesn't have access, redirect
+            if (pageAccessKey && !session.pageAccess[pageAccessKey]) {
                 const menuUrl = new URL('/menu', request.url);
                 return NextResponse.redirect(menuUrl);
             }

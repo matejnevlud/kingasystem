@@ -14,8 +14,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
         const session = JSON.parse(sessionCookie.value);
         
-        // Check if user has access to accounts page
-        if (!session.pageAccess.pgAccounts) {
+        // Check if user has admin access
+        if (!session.pageAccess.pgAdmin) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
@@ -91,7 +91,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
                 pgExpensesView: false,
                 pgResult: false,
                 pgBusiness: false,
-                pgAccounts: false,
+                pgAdmin: false,
             }
         };
 
@@ -114,8 +114,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
         const session = JSON.parse(sessionCookie.value);
         
-        // Check if user has access to accounts page
-        if (!session.pageAccess.pgAccounts) {
+        // Check if user has admin access
+        if (!session.pageAccess.pgAdmin) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 

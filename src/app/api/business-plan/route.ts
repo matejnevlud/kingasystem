@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         // Get units that user has access to
         let unitIds: number[];
         
-        if (userId !== 1) {
+        if (!session.pageAccess.pgAdmin) {
             const userUnits = await prisma.unitAccess.findMany({
                 where: {
                     idUser: userId,
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
                 return NextResponse.json([]);
             }
         } else {
-            // User ID 1 has access to all units
+            // Admin users have access to all units
             const allUnits = await prisma.unit.findMany({
                 select: {
                     id: true,
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Check if user has access to this unit
-        if (userId !== 1) {
+        if (!session.pageAccess.pgAdmin) {
             const unitAccess = await prisma.unitAccess.findFirst({
                 where: {
                     idUser: userId,
@@ -191,7 +191,7 @@ export async function PUT(request: NextRequest) {
         }
 
         // Check if user has access to this unit
-        if (userId !== 1) {
+        if (!session.pageAccess.pgAdmin) {
             const unitAccess = await prisma.unitAccess.findFirst({
                 where: {
                     idUser: userId,

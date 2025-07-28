@@ -63,9 +63,9 @@ export default function AdminProductsPage() {
                 }
                 const data = await response.json();
 
-                // Check if user is admin (ID 1)
-                if (data.userId !== 1) {
-                    // Redirect to menu if user is not admin
+                // Check if user has admin access
+                if (!data.pageAccess.pgAdmin) {
+                    // Redirect to menu if user doesn't have admin access
                     router.push('/menu');
                     return;
                 }

@@ -94,7 +94,7 @@ model PageAccess {
   pgExpensesView  Boolean @default(false) @map("pgExpensesView")
   pgResult        Boolean @default(false) @map("pgResult")
   pgBusiness      Boolean @default(false) @map("pgBusiness")
-  pgAccounts      Boolean @default(false) @map("pgAccounts")
+  pgAdmin         Boolean @default(false) @map("pgAdmin")
 
   // Relations
   user User @relation(fields: [idUser], references: [id])

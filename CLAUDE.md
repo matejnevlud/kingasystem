@@ -53,7 +53,7 @@ Pages are controlled through the `PageAccess` model with these permissions:
 - `pgExpensesView`: Expense viewing page
 - `pgResult`: Financial results page
 - `pgBusiness`: Business planning page
-- `pgAccounts`: Account management page
+- `pgAdmin`: System administration (user management)
 
 ### Security Notes
 - Currently uses plain text password comparison (marked for production improvement)

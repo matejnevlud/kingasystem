@@ -42,7 +42,7 @@ type PageAccess = {
     pgExpensesView: boolean;
     pgResult: boolean;
     pgBusiness: boolean;
-    pgAccounts: boolean;
+    pgAdmin: boolean;
 };
 
 // Define the type for user session
@@ -50,7 +50,7 @@ type UserSession = {
     userId: number;
     name: string;
     pageAccess: {
-        pgAccounts: boolean;
+        pgAdmin: boolean;
         [key: string]: any;
     };
 };
@@ -63,7 +63,7 @@ const pagePermissions = [
     { key: 'pgExpensesView', label: 'Expenses View' },
     { key: 'pgResult', label: 'Plan Overview' },
     { key: 'pgBusiness', label: 'Business Plan' },
-    { key: 'pgAccounts', label: 'Accounts' },
+    { key: 'pgAdmin', label: 'Admin' },
 ];
 
 export default function AccountsPage() {
@@ -90,7 +90,7 @@ export default function AccountsPage() {
             pgExpensesView: false,
             pgResult: false,
             pgBusiness: false,
-            pgAccounts: false,
+            pgAdmin: false,
         }
     });
     const router = useRouter();
@@ -106,8 +106,8 @@ export default function AccountsPage() {
                 const data = await response.json();
 
                 // Check if user has access to accounts page
-                if (!data.pageAccess.pgAccounts) {
-                    // Redirect to menu if user doesn't have access
+                if (!data.pageAccess.pgAdmin) {
+                    // Redirect to menu if user doesn't have admin access
                     router.push('/menu');
                     return;
                 }
@@ -174,7 +174,7 @@ export default function AccountsPage() {
                 pgExpensesView: false,
                 pgResult: false,
                 pgBusiness: false,
-                pgAccounts: false,
+                pgAdmin: false,
             }
         });
         setIsModalOpen(true);
@@ -198,7 +198,7 @@ export default function AccountsPage() {
                 pgExpensesView: user.pageAccess?.pgExpensesView ?? false,
                 pgResult: user.pageAccess?.pgResult ?? false,
                 pgBusiness: user.pageAccess?.pgBusiness ?? false,
-                pgAccounts: user.pageAccess?.pgAccounts ?? false,
+                pgAdmin: user.pageAccess?.pgAdmin ?? false,
             }
         });
         setIsModalOpen(true);
@@ -308,7 +308,7 @@ export default function AccountsPage() {
                             </svg>
                             Back
                         </Link>
-                        <h1 className="text-2xl font-bold text-gray-800">Accounts</h1>
+                        <h1 className="text-2xl font-bold text-gray-800">Admin - User Management</h1>
                         <button
                             onClick={handleNewUser}
                             className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"

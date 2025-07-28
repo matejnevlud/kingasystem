@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
         // Convert unitIds to numbers
         const unitIdNumbers = unitIds.map(id => parseInt(id));
 
-        // Check if user has access to all requested units (skip check for user ID 1)
-        if (userId !== 1) {
+        // Check if user has access to all requested units (skip check for admin users)
+        if (!session.pageAccess.pgAdmin) {
             const unitAccess = await prisma.unitAccess.findMany({
                 where: {
                     idUser: userId,

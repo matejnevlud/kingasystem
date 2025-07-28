@@ -426,41 +426,105 @@ export default function ExpensesOverviewPage() {
                         </div>
                     )}
 
-                    {/* Expenses Table */}
+                    {/* Expenses Display - Responsive */}
                     {selectedUnitIds.length > 0 && (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit/Cat</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                                </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                {expenses.map((expense) => (
-                                    <tr
-                                        key={expense.id}
-                                        className="hover:bg-gray-50 cursor-pointer"
-                                        onClick={() => handleExpenseClick(expense)}
-                                    >
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {expense.description}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {new Date(expense.datetime).toLocaleDateString()}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {expense.unit?.unit || `Unit ${expense.idUnit}`} | {expense.category}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {expense.cost.toFixed(0)},-
-                                        </td>
+                        <div className="px-4">
+                            {/* Desktop Table */}
+                            <div className="hidden md:block overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit/Cat</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                                     </tr>
-                                ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                    {expenses.map((expense) => (
+                                        <tr
+                                            key={expense.id}
+                                            className="hover:bg-gray-50 cursor-pointer"
+                                            onClick={() => handleExpenseClick(expense)}
+                                        >
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {expense.description}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {new Date(expense.datetime).toLocaleDateString()}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {expense.unit?.unit || `Unit ${expense.idUnit}`} | {expense.category}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                {expense.cost.toFixed(0)},-
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Mobile Table-like Layout */}
+                            <div className="md:hidden">
+                                {/* Mobile Table Header */}
+                                <div className="bg-gray-50 border-b border-gray-200 px-3 py-2 mb-1">
+                                    <div className="grid grid-cols-4 gap-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <div className="col-span-2">Description</div>
+                                        <div className="text-center">Date</div>
+                                        <div className="text-right">Total</div>
+                                    </div>
+                                </div>
+                                
+                                {/* Mobile Table Rows */}
+                                <div className="space-y-1">
+                                    {expenses.map((expense) => (
+                                        <div
+                                            key={expense.id}
+                                            onClick={() => handleExpenseClick(expense)}
+                                            className="bg-white border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
+                                        >
+                                            {/* First Row - Main Info */}
+                                            <div className="grid grid-cols-4 gap-2 px-3 py-2 items-center">
+                                                <div className="col-span-2">
+                                                    <div className="text-sm font-medium text-gray-900 leading-tight">
+                                                        {expense.description}
+                                                    </div>
+                                                </div>
+                                                <div className="text-center">
+                                                    <span className="text-sm text-gray-900">
+                                                        {new Date(expense.datetime).toLocaleDateString()}
+                                                    </span>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="text-sm font-bold text-gray-900">
+                                                        {expense.cost.toFixed(0)},-
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Second Row - Additional Info */}
+                                            <div className="grid grid-cols-4 gap-2 px-3 py-1 bg-gray-25 border-t border-gray-100">
+                                                <div className="col-span-2">
+                                                    <span className="text-xs text-gray-500">
+                                                        Tap to edit/delete
+                                                    </span>
+                                                </div>
+                                                <div className="text-center">
+                                                    <span className="text-xs text-gray-500">
+                                                        Cat: {expense.category}
+                                                    </span>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="text-xs text-gray-500">
+                                                        {expense.unit?.unit || `Unit ${expense.idUnit}`}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     )}
 

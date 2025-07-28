@@ -61,7 +61,7 @@ export async function PUT(
         }
 
         // Check if user has access to the unit (skip for user ID 1)
-        if (userId !== 1) {
+        if (!session.pageAccess.pgAdmin) {
             const unitAccess = await prisma.unitAccess.findFirst({
                 where: {
                     idUser: userId,
@@ -173,7 +173,7 @@ export async function DELETE(
         }
 
         // Check if user has access to the unit (skip for user ID 1)
-        if (userId !== 1) {
+        if (!session.pageAccess.pgAdmin) {
             const unitAccess = await prisma.unitAccess.findFirst({
                 where: {
                     idUser: userId,

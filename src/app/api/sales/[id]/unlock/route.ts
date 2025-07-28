@@ -48,8 +48,8 @@ export async function POST(
             );
         }
 
-        // Check if user has access to this unit (skip for user ID 1)
-        if (userId !== 1) {
+        // Check if user has access to this unit (skip for admin users)
+        if (!session.pageAccess.pgAdmin) {
             const unitAccess = await prisma.unitAccess.findFirst({
                 where: {
                     idUser: userId,

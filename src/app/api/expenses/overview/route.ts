@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
         const unitIdNumbers = unitIds.map(id => parseInt(id));
 
         // Check if user has access to all requested units (admin ID 1 has access to all units)
-        if (userId !== 1) {
+        if (!session.pageAccess.pgAdmin) {
             const unitAccess = await prisma.unitAccess.findMany({
                 where: {
                     idUser: userId,

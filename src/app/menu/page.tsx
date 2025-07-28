@@ -15,7 +15,7 @@ type PageAccess = {
     pgExpensesView: boolean;
     pgResult: boolean;
     pgBusiness: boolean;
-    pgAccounts: boolean;
+    pgAdmin: boolean;
 };
 
 // Define the type for user session
@@ -88,14 +88,14 @@ export default function MenuPage() {
         {name: 'Expenses Overview', path: '/expensesoverview', access: user.pageAccess.pgExpensesView},
         {name: 'Business Plan', path: '/business', access: user.pageAccess.pgBusiness},
         {name: 'Plan Overview', path: '/planoverview', access: user.pageAccess.pgResult},
-        {name: 'Accounts', path: '/accounts', access: user.pageAccess.pgAccounts},
     ];
 
-    // Define admin-only menu items (only for user ID 1)
+    // Define admin-only menu items
     const adminMenuItems = [
-        {name: 'Admin - Units', path: '/admin/units', access: user.userId === 1},
-        {name: 'Admin - Products', path: '/admin/products', access: user.userId === 1},
-        {name: 'Admin - Payment Types', path: '/admin/payment-types', access: user.userId === 1},
+        {name: 'Admin - User Management', path: '/admin/accounts', access: user.pageAccess.pgAdmin},
+        {name: 'Admin - Units', path: '/admin/units', access: user.pageAccess.pgAdmin},
+        {name: 'Admin - Products', path: '/admin/products', access: user.pageAccess.pgAdmin},
+        {name: 'Admin - Payment Types', path: '/admin/payment-types', access: user.pageAccess.pgAdmin},
     ];
 
     // Filter menu items based on user's access permissions

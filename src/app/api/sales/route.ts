@@ -29,8 +29,8 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Check if user has access to this unit (admin ID 1 has access to all units)
-        if (userId !== 1) {
+        // Check if user has access to this unit (admin has access to all units)
+        if (!session.pageAccess.pgAdmin) {
             const unitAccess = await prisma.unitAccess.findFirst({
                 where: {
                     idUser: userId,
@@ -102,8 +102,8 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Check if user has access to this unit (admin ID 1 has access to all units)
-        if (userId !== 1) {
+        // Check if user has access to this unit (admin has access to all units)
+        if (!session.pageAccess.pgAdmin) {
             const unitAccess = await prisma.unitAccess.findFirst({
                 where: {
                     idUser: userId,

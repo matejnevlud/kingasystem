@@ -19,11 +19,11 @@ export async function GET(request: NextRequest) {
         const session = JSON.parse(sessionCookie.value);
         const userId = session.userId;
 
-        // Fetch units - admin (ID 1) gets all units, others get only accessible units
+        // Fetch units - admin gets all units, others get only accessible units
         const units = await prisma.unit.findMany({
             where: {
                 active: true,
-                ...(userId !== 1 && {
+                ...(!session.pageAccess.pgAdmin && {
                     unitAccess: {
                         some: {
                             idUser: userId

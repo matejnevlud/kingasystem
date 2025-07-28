@@ -77,6 +77,7 @@ export default function SalesConfirmationPage() {
         amount: '',
         paymentTypeId: ''
     });
+    const [selectedSaleIds, setSelectedSaleIds] = useState<Set<number>>(new Set());
     const router = useRouter();
 
     // Fetch user session on component mount
@@ -301,7 +302,7 @@ export default function SalesConfirmationPage() {
 
     // Calculate totals and stats
     const calculateStats = () => {
-        if (!sales.length) return {total: 0, byPaymentType: {}};
+        if (!sales.length) return {total: 0, byPaymentType: {}, selectedTotal: 0, selectedByPaymentType: {}};
 
         const total = sales.reduce((sum, sale) => sum + (sale.sellPrice * sale.amount), 0);
         const byPaymentType: { [key: string]: number } = {};
@@ -311,12 +312,45 @@ export default function SalesConfirmationPage() {
             byPaymentType[paymentType] = (byPaymentType[paymentType] || 0) + (sale.sellPrice * sale.amount);
         });
 
-        return {total, byPaymentType};
+        // Calculate selected totals
+        const selectedSales = sales.filter(sale => selectedSaleIds.has(sale.id));
+        const selectedTotal = selectedSales.reduce((sum, sale) => sum + (sale.sellPrice * sale.amount), 0);
+        const selectedByPaymentType: { [key: string]: number } = {};
+
+        selectedSales.forEach(sale => {
+            const paymentType = sale.paymentType?.abreviation || 'UNK';
+            selectedByPaymentType[paymentType] = (selectedByPaymentType[paymentType] || 0) + (sale.sellPrice * sale.amount);
+        });
+
+        return {total, byPaymentType, selectedTotal, selectedByPaymentType};
+    };
+
+    // Handle row selection
+    const handleRowSelection = (saleId: number, event: React.ChangeEvent<HTMLInputElement> | React.MouseEvent) => {
+        event.stopPropagation();
+        setSelectedSaleIds(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(saleId)) {
+                newSet.delete(saleId);
+            } else {
+                newSet.add(saleId);
+            }
+            return newSet;
+        });
+    };
+
+    // Handle select all/none
+    const handleSelectAll = () => {
+        if (selectedSaleIds.size === sales.length) {
+            setSelectedSaleIds(new Set());
+        } else {
+            setSelectedSaleIds(new Set(sales.map(sale => sale.id)));
+        }
     };
 
     // Handle confirm and lock
     const handleConfirmAndLock = async () => {
-        if (!selectedUnitId || !sales.length) return;
+        if (!selectedUnitId || selectedSaleIds.size === 0) return;
 
         setIsSubmitting(true);
         try {
@@ -327,7 +361,7 @@ export default function SalesConfirmationPage() {
                 },
                 body: JSON.stringify({
                     unitId: selectedUnitId,
-                    saleIds: sales.map(sale => sale.id)
+                    saleIds: Array.from(selectedSaleIds)
                 }),
             });
 
@@ -339,6 +373,7 @@ export default function SalesConfirmationPage() {
             const updatedResponse = await fetch(`/api/sales?unitId=${selectedUnitId}`);
             const updatedSales = await updatedResponse.json();
             setSales(updatedSales);
+            setSelectedSaleIds(new Set());
         } catch (err) {
             setError('Error confirming sales. Please try again.');
             console.error('Error confirming sales:', err);
@@ -399,45 +434,202 @@ export default function SalesConfirmationPage() {
                         </div>
                     )}
 
-                    {/* Sales Table */}
+                    {/* Sales Display - Responsive */}
                     {selectedUnitId && (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                                </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                {sales.map((sale) => (
-                                    <tr
-                                        key={sale.id}
-                                        onClick={() => handleSaleEdit(sale)}
-                                        className="hover:bg-gray-50 cursor-pointer transition-colors"
-                                    >
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {sale.productName}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {sale.paymentType?.abreviation || 'UNK'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {sale.sellPrice.toFixed(0)},-
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {sale.amount}x
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {(sale.sellPrice * sale.amount).toFixed(0)},-
-                                        </td>
+                        <div className="px-4">
+                            {/* Desktop Table */}
+                            <div className="hidden md:block overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedSaleIds.size === sales.length && sales.length > 0}
+                                                onChange={handleSelectAll}
+                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                            />
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                                     </tr>
-                                ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                    {sales.map((sale) => {
+                                        const isSelected = selectedSaleIds.has(sale.id);
+                                        return (
+                                            <tr
+                                                key={sale.id}
+                                                className={`cursor-pointer transition-colors ${
+                                                    isSelected 
+                                                        ? 'bg-blue-50 border-2 border-blue-300 hover:bg-blue-100' 
+                                                        : 'hover:bg-gray-50 border-2 border-transparent'
+                                                }`}
+                                            >
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isSelected}
+                                                        onChange={(e) => handleRowSelection(sale.id, e)}
+                                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                    />
+                                                </td>
+                                                <td 
+                                                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                                                    onClick={() => handleSaleEdit(sale)}
+                                                >
+                                                    {sale.productName}
+                                                </td>
+                                                <td 
+                                                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                                                    onClick={() => handleSaleEdit(sale)}
+                                                >
+                                                    {sale.paymentType?.abreviation || 'UNK'}
+                                                </td>
+                                                <td 
+                                                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                                                    onClick={() => handleSaleEdit(sale)}
+                                                >
+                                                    {sale.sellPrice.toFixed(0)},-
+                                                </td>
+                                                <td 
+                                                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                                                    onClick={() => handleSaleEdit(sale)}
+                                                >
+                                                    {sale.amount}x
+                                                </td>
+                                                <td 
+                                                    className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+                                                    onClick={() => handleSaleEdit(sale)}
+                                                >
+                                                    {(sale.sellPrice * sale.amount).toFixed(0)},-
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Mobile Table-like Layout */}
+                            <div className="md:hidden">
+                                {/* Mobile Table Header */}
+                                <div className="bg-gray-50 border-b border-gray-200 px-3 py-2 mb-1">
+                                    <div className="grid gap-2 text-xs font-medium text-gray-500 uppercase tracking-wider" style={{gridTemplateColumns: '1rem 1fr 4rem 4rem 4rem'}}>
+                                        <div className="flex items-center justify-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedSaleIds.size === sales.length && sales.length > 0}
+                                                onChange={handleSelectAll}
+                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                            />
+                                        </div>
+                                        <div>Product</div>
+                                        <div className="text-center">Payment</div>
+                                        <div className="text-center">Price</div>
+                                        <div className="text-right">Total</div>
+                                    </div>
+                                </div>
+                                
+                                {/* Mobile Table Rows */}
+                                <div className="space-y-1">
+                                    {sales.map((sale) => {
+                                        const isSelected = selectedSaleIds.has(sale.id);
+                                        return (
+                                            <div
+                                                key={sale.id}
+                                                className={`border cursor-pointer transition-colors ${
+                                                    isSelected 
+                                                        ? 'bg-blue-50 border-blue-300 border-2' 
+                                                        : 'bg-white border-gray-200 hover:bg-gray-50'
+                                                }`}
+                                            >
+                                                {/* First Row - Main Info */}
+                                                <div className="grid gap-2 px-3 py-2 items-center" style={{gridTemplateColumns: '1rem 1fr 4rem 4rem 4rem'}}>
+                                                    <div className="flex items-center justify-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isSelected}
+                                                            onChange={(e) => handleRowSelection(sale.id, e)}
+                                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                        />
+                                                    </div>
+                                                    <div 
+                                                        onClick={() => handleSaleEdit(sale)}
+                                                    >
+                                                        <div className="text-sm font-medium text-gray-900 leading-tight">
+                                                            {sale.productName}
+                                                        </div>
+                                                    </div>
+                                                    <div 
+                                                        className="text-center"
+                                                        onClick={() => handleSaleEdit(sale)}
+                                                    >
+                                                        <span className="text-sm text-gray-900">
+                                                            {sale.paymentType?.abreviation || 'UNK'}
+                                                        </span>
+                                                    </div>
+                                                    <div 
+                                                        className="text-center"
+                                                        onClick={() => handleSaleEdit(sale)}
+                                                    >
+                                                        <span className="text-sm text-gray-900">
+                                                            {sale.sellPrice.toFixed(0)},-
+                                                        </span>
+                                                    </div>
+                                                    <div 
+                                                        className="text-right"
+                                                        onClick={() => handleSaleEdit(sale)}
+                                                    >
+                                                        <span className="text-sm font-bold text-gray-900">
+                                                            {(sale.sellPrice * sale.amount).toFixed(0)},-
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Second Row - Quantity Info */}
+                                                <div className="grid gap-2 px-3 py-1 bg-gray-25 border-t border-gray-100" style={{gridTemplateColumns: '1rem 1fr 4rem 4rem 4rem'}}>
+                                                    <div></div>
+                                                    <div 
+                                                        onClick={() => handleSaleEdit(sale)}
+                                                    >
+                                                        <span className="text-xs text-gray-500">
+                                                            Tap to edit
+                                                        </span>
+                                                    </div>
+                                                    <div 
+                                                        className="text-center"
+                                                        onClick={() => handleSaleEdit(sale)}
+                                                    >
+                                                        <span className="text-xs text-gray-500">
+                                                            {sale.paymentType?.name || 'Unknown'}
+                                                        </span>
+                                                    </div>
+                                                    <div 
+                                                        className="text-center"
+                                                        onClick={() => handleSaleEdit(sale)}
+                                                    >
+                                                        <span className="text-xs text-gray-500">
+                                                            × {sale.amount}
+                                                        </span>
+                                                    </div>
+                                                    <div 
+                                                        className="text-right"
+                                                        onClick={() => handleSaleEdit(sale)}
+                                                    >
+                                                        <span className="text-xs text-gray-500">
+                                                            Qty: {sale.amount}x
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         </div>
                     )}
 
@@ -452,26 +644,98 @@ export default function SalesConfirmationPage() {
                 {/* Fixed Footer with Totals and Confirm Button */}
                 {selectedUnitId && sales.length > 0 && (
                     <div className="flex-shrink-0 bg-gray-50 p-4 border-t border-gray-200">
-                        <div className="flex justify-between items-center mb-4">
-                            <span className="text-lg font-bold text-gray-900">TOTAL:</span>
+                        {/* Desktop Layout */}
+                        <div className="hidden md:block">
+                            <div className="flex justify-between items-center mb-4">
+                                <div>
+                                    <span className="text-lg font-bold text-gray-900">SELECTED: </span>
+                                    <span className="text-lg font-bold text-blue-600">
+                                        {stats.selectedTotal.toFixed(0)},-
+                                    </span>
+                                    <span className="text-sm text-gray-600 ml-2">
+                                        ({selectedSaleIds.size} of {sales.length})
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={handleConfirmAndLock}
+                                    disabled={isSubmitting || selectedSaleIds.size === 0}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isSubmitting ? 'Processing...' : `Confirm ${selectedSaleIds.size} selected`}
+                                </button>
+                                <div>
+                                    <span className="text-lg font-bold text-gray-900">TOTAL: </span>
+                                    <span className="text-lg font-bold text-gray-900">
+                                        {stats.total.toFixed(0)},-
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="flex space-x-6 text-sm text-gray-700">
+                                <div className="flex space-x-4">
+                                    <span className="font-medium text-blue-600">Selected:</span>
+                                    {Object.entries(stats.selectedByPaymentType).map(([type, amount]) => (
+                                        <div key={type} className="flex space-x-1">
+                                            <span className="font-medium text-blue-600">{type}</span>
+                                            <span className="font-bold text-blue-600">{amount.toFixed(0)},-</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="border-l border-gray-300 pl-4 flex space-x-4">
+                                    <span className="font-medium">Total:</span>
+                                    {Object.entries(stats.byPaymentType).map(([type, amount]) => (
+                                        <div key={type} className="flex space-x-1">
+                                            <span className="font-medium">{type}</span>
+                                            <span className="font-bold">{amount.toFixed(0)},-</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Mobile Layout */}
+                        <div className="md:hidden">
+                            <div className="flex justify-between items-center mb-3">
+                                <div>
+                                    <div className="text-sm font-bold text-blue-600">
+                                        SELECTED: {stats.selectedTotal.toFixed(0)},-
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                        ({selectedSaleIds.size} of {sales.length})
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-lg font-bold text-gray-900">
+                                        TOTAL: {stats.total.toFixed(0)},-
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 text-sm text-gray-700 mb-4">
+                                <div>
+                                    <div className="text-xs font-medium text-blue-600 mb-1">Selected:</div>
+                                    {Object.entries(stats.selectedByPaymentType).map(([type, amount]) => (
+                                        <div key={type} className="flex justify-between text-blue-600">
+                                            <span className="font-medium">{type}</span>
+                                            <span className="font-bold">{amount.toFixed(0)},-</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div>
+                                    <div className="text-xs font-medium text-gray-700 mb-1">Total:</div>
+                                    {Object.entries(stats.byPaymentType).map(([type, amount]) => (
+                                        <div key={type} className="flex justify-between">
+                                            <span className="font-medium">{type}</span>
+                                            <span className="font-bold">{amount.toFixed(0)},-</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                             <button
                                 onClick={handleConfirmAndLock}
-                                disabled={isSubmitting}
-                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={isSubmitting || selectedSaleIds.size === 0}
+                                className="w-full px-4 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {isSubmitting ? 'Processing...' : 'Confirm and lock'}
+                                {isSubmitting ? 'Processing...' : `Confirm ${selectedSaleIds.size} selected`}
                             </button>
-                            <span className="text-lg font-bold text-gray-900">
-                                {stats.total.toFixed(0)},-
-                            </span>
-                        </div>
-                        <div className="flex space-x-6 text-sm text-gray-700">
-                            {Object.entries(stats.byPaymentType).map(([type, amount]) => (
-                                <div key={type} className="flex space-x-2">
-                                    <span className="font-medium">{type}</span>
-                                    <span className="font-bold">{amount.toFixed(0)},-</span>
-                                </div>
-                            ))}
                         </div>
                     </div>
                 )}

@@ -14,8 +14,8 @@ export async function GET() {
 
         const session = JSON.parse(sessionCookie.value);
         
-        // Check if user is admin (ID 1)
-        if (session.userId !== 1) {
+        // Check if user has admin access
+        if (!session.pageAccess.pgAdmin) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
 
         const session = JSON.parse(sessionCookie.value);
         
-        // Check if user is admin (ID 1)
-        if (session.userId !== 1) {
+        // Check if user has admin access
+        if (!session.pageAccess.pgAdmin) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
