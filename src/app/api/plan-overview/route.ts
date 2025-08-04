@@ -63,16 +63,105 @@ export async function GET(request: NextRequest) {
         const toDate = new Date(dateTo);
         toDate.setHours(23, 59, 59, 999);
 
-        // Get year and month for budget data
-        const year = fromDate.getFullYear();
-        const month = fromDate.getMonth() + 1;
+        // Calculate budget revenue based on date range (like SQL function)
+        const calculateBudgetRevenue = async () => {
+            let totalBudget = 0;
+            
+            // Get start and end month details
+            const startYear = fromDate.getFullYear();
+            const startMonth = fromDate.getMonth() + 1;
+            const startDay = fromDate.getDate();
+            
+            const endYear = toDate.getFullYear();
+            const endMonth = toDate.getMonth() + 1;
+            const endDay = toDate.getDate();
+            
+            // If same month and year
+            if (startYear === endYear && startMonth === endMonth) {
+                const businessPlans = await prisma.businessPlan.findMany({
+                    where: {
+                        idUnit: {in: unitIdNumbers},
+                        year: startYear,
+                        month: startMonth,
+                    },
+                });
+                
+                const monthRevenue = businessPlans.reduce((sum, plan) => sum + plan.revenue, 0);
+                const daysInMonth = new Date(startYear, startMonth, 0).getDate();
+                const daysBetween = endDay - startDay + 1;
+                totalBudget = monthRevenue * daysBetween / daysInMonth;
+            } else {
+                // Calculate for start month (partial)
+                const startPlans = await prisma.businessPlan.findMany({
+                    where: {
+                        idUnit: {in: unitIdNumbers},
+                        year: startYear,
+                        month: startMonth,
+                    },
+                });
+                
+                const startMonthRevenue = startPlans.reduce((sum, plan) => sum + plan.revenue, 0);
+                const startDaysInMonth = new Date(startYear, startMonth, 0).getDate();
+                const startDaysToSubtract = startDay - 1;
+                totalBudget += startMonthRevenue - (startMonthRevenue * startDaysToSubtract / startDaysInMonth);
+                
+                // Calculate for end month (partial)
+                const endPlans = await prisma.businessPlan.findMany({
+                    where: {
+                        idUnit: {in: unitIdNumbers},
+                        year: endYear,
+                        month: endMonth,
+                    },
+                });
+                
+                const endMonthRevenue = endPlans.reduce((sum, plan) => sum + plan.revenue, 0);
+                const endDaysInMonth = new Date(endYear, endMonth, 0).getDate();
+                const endDaysToSubtract = endDaysInMonth - endDay;
+                totalBudget += endMonthRevenue - (endMonthRevenue * endDaysToSubtract / endDaysInMonth);
+                
+                // Calculate for full months in between
+                let currentDate = new Date(startYear, startMonth, 1); // Next month after start
+                const endDate = new Date(endYear, endMonth - 1, 1); // Month before end
+                
+                while (currentDate <= endDate) {
+                    const fullMonthPlans = await prisma.businessPlan.findMany({
+                        where: {
+                            idUnit: {in: unitIdNumbers},
+                            year: currentDate.getFullYear(),
+                            month: currentDate.getMonth() + 1,
+                        },
+                    });
+                    
+                    totalBudget += fullMonthPlans.reduce((sum, plan) => sum + plan.revenue, 0);
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+                }
+            }
+            
+            return totalBudget;
+        };
 
-        // Fetch budget data from business plans
-        const businessPlans = await prisma.businessPlan.findMany({
+        const budgetRevenue = await calculateBudgetRevenue();
+
+        // Fetch all business plans for the date range to calculate other budget items
+        const allBusinessPlans = await prisma.businessPlan.findMany({
             where: {
                 idUnit: {in: unitIdNumbers},
-                year: year,
-                month: month,
+                OR: [
+                    {
+                        year: fromDate.getFullYear(),
+                        month: {
+                            gte: fromDate.getMonth() + 1,
+                            lte: fromDate.getFullYear() === toDate.getFullYear() ? toDate.getMonth() + 1 : 12
+                        }
+                    },
+                    ...(fromDate.getFullYear() !== toDate.getFullYear() ? [{
+                        year: toDate.getFullYear(),
+                        month: {
+                            gte: 1,
+                            lte: toDate.getMonth() + 1
+                        }
+                    }] : [])
+                ]
             },
         });
 
@@ -100,11 +189,15 @@ export async function GET(request: NextRequest) {
             },
         });
 
-        // Calculate budget totals
-        const budgetRevenue = businessPlans.reduce((sum, plan) => sum + plan.revenue, 0);
-        const budgetIndirect = businessPlans.reduce((sum, plan) => sum + (plan.revenue * plan.indirectPerc / 100), 0);
-        const budgetFix = businessPlans.reduce((sum, plan) => sum + plan.tax, 0);
-        const budgetOoc = businessPlans.reduce((sum, plan) => sum + plan.ooc, 0);
+        // Calculate budget direct (assuming it's revenue minus margin)
+        const budgetDirect = budgetRevenue * 0.6; // Assuming 60% direct costs, adjust as needed
+
+        // Calculate other budget totals (proportional to revenue ratio)
+        const totalPlannedRevenue = allBusinessPlans.reduce((sum, plan) => sum + plan.revenue, 0);
+        const revenueRatio = totalPlannedRevenue > 0 ? budgetRevenue / totalPlannedRevenue : 0;
+        const budgetIndirect = budgetDirect * (allBusinessPlans.reduce((sum, plan) => sum + plan.indirectPerc, 0) / allBusinessPlans.length) / 100;
+        const budgetFix = allBusinessPlans.reduce((sum, plan) => sum + plan.tax, 0) * revenueRatio;
+        const budgetOoc = allBusinessPlans.reduce((sum, plan) => sum + plan.ooc, 0) * revenueRatio;
         const budgetExpenses = budgetIndirect + budgetFix + budgetOoc;
 
         // Calculate real totals
@@ -117,12 +210,9 @@ export async function GET(request: NextRequest) {
         const realOoc = expenses.filter(e => e.category === 'O').reduce((sum, e) => sum + e.cost, 0);
         const realExpenses = realDirect + realIndirect + realFix + realOoc;
 
-        // Calculate budget direct (assuming it's revenue minus margin)
-        const budgetDirect = budgetRevenue * 0.6; // Assuming 60% direct costs, adjust as needed
-
         // Calculate profits
         const budgetProfit = budgetRevenue - budgetDirect - budgetExpenses;
-        const realProfit = realRevenue - realDirect - realExpenses;
+        const realProfit = realRevenue - realExpenses;
 
         // Helper function to calculate delta
         const calculateDelta = (real: number, budget: number) => {
