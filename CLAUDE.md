@@ -10,6 +10,7 @@ This is a Next.js 15 business management system called KingaSystem that tracks s
 - `npm run build` - Build production application
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
+- `npm run postinstall` - Apply Flowbite React patches (runs automatically after install)
 
 ## Database Management
 - Uses Prisma ORM with MySQL database
@@ -54,6 +55,36 @@ Pages are controlled through the `PageAccess` model with these permissions:
 - `pgResult`: Financial results page
 - `pgBusiness`: Business planning page
 - `pgAdmin`: System administration (user management)
+
+### UI and Styling
+- **Tailwind CSS 4**: Modern utility-first CSS framework for styling
+- **Flowbite React**: Component library for UI elements (requires post-install patch)
+- **TypeScript**: Full type safety across the application
+- **Responsive Design**: Mobile-first approach with responsive layouts
+
+### Key Development Patterns
+- **Server Components**: Uses Next.js 15 server components by default
+- **Client Components**: Marked with 'use client' directive when needed for interactivity
+- **Session Management**: Cookie-based sessions accessed via `/api/auth/session`
+- **File Uploads**: Custom ImageUpload component for expense receipt handling
+- **Permission Checks**: Pages check user permissions on both client and server side
+
+### Progressive Web App (PWA) Features
+- **Web App Manifest**: `/public/manifest.json` defines app metadata, icons, and behavior
+- **Service Worker**: `/public/sw.js` provides basic caching and offline functionality
+- **App Icons**: Multiple sizes (72x72 to 512x512) in `/public/icons/` for different devices
+- **Install Prompt**: Optional `PWAInstallPrompt` component can be added to pages
+- **Mobile Installation**: App can be "Add to Home Screen" on mobile devices
+- **Fullscreen Mode**: Runs in true fullscreen mode with hidden status bar when installed
+- **Safe Area Support**: Handles device notches and safe areas automatically
+- **iOS Status Bar**: Forced hidden status bar on iOS Safari with black-translucent style
+
+### PWA Detection & Browser-Specific Features
+- **usePWADetection Hook**: Detects if running as PWA vs browser, device type, and browser
+- **PWAWrapper Component**: Applies browser-specific classes and behavior automatically
+- **Safari Install Modal**: Large modal with step-by-step instructions for Safari users
+- **Browser-Specific Styling**: Different CSS classes for Safari, Chrome, iOS, Android, etc.
+- **Conditional Components**: Components adapt based on PWA/browser mode detection
 
 ### Security Notes
 - Currently uses plain text password comparison (marked for production improvement)

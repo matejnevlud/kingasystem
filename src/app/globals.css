@@ -87,3 +87,89 @@ body {
     color: var(--foreground);
     font-family: Arial, Helvetica, sans-serif;
 }
+
+/* PWA Fullscreen Support */
+html, body {
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
+    overflow-x: hidden;
+}
+
+/* Handle safe areas for devices with notches */
+body {
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+}
+
+/* Ensure full height for app containers */
+.app-container {
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+/* Handle status bar overlay on iOS */
+@supports (-webkit-touch-callout: none) {
+    /* iOS Safari specific styles */
+    .ios-status-bar-padding {
+        padding-top: max(20px, env(safe-area-inset-top));
+    }
+}
+
+/* Force fullscreen mode */
+@media (display-mode: fullscreen) {
+    body {
+        padding-top: 0;
+    }
+}
+
+/* PWA vs Browser Mode Specific Styles */
+.browser-mode {
+    /* Styles when running in browser */
+}
+
+.pwa-mode {
+    /* Styles when running as installed PWA */
+}
+
+.safari-browser {
+    /* Safari browser specific adjustments */
+}
+
+
+.chrome-browser {
+    /* Chrome browser specific adjustments */
+}
+
+/* iOS Safari specific adjustments when in browser mode */
+.ios-device.browser-mode.safari-browser {
+    /* Add top padding for iOS Safari address bar */
+    padding-top: max(44px, env(safe-area-inset-top));
+}
+
+/* iOS PWA mode - no extra padding needed */
+.ios-device.pwa-mode {
+    padding-top: env(safe-area-inset-top);
+}
+
+/* Android specific adjustments */
+.android-device.browser-mode {
+    /* Android browser adjustments */
+}
+
+.android-device.pwa-mode {
+    /* Android PWA adjustments */
+}
+
+/* Fullscreen PWA specific styles */
+.fullscreen-pwa {
+    /* True fullscreen mode styles */
+    padding-top: 0 !important;
+}
+
+/* Standalone PWA specific styles */
+.standalone-pwa {
+    /* Standalone PWA with status bar styles */
+}
+
