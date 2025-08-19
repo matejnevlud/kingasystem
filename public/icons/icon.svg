@@ -1,39 +1,5 @@
-<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background circle -->
-  <circle cx="256" cy="256" r="256" fill="#2563eb"/>
-  
-  <!-- Business building icon -->
-  <g fill="white">
-    <!-- Main building -->
-    <rect x="160" y="180" width="192" height="252" rx="8" ry="8"/>
-    
-    <!-- Windows -->
-    <rect x="180" y="200" width="24" height="24" fill="#2563eb"/>
-    <rect x="220" y="200" width="24" height="24" fill="#2563eb"/>
-    <rect x="268" y="200" width="24" height="24" fill="#2563eb"/>
-    <rect x="308" y="200" width="24" height="24" fill="#2563eb"/>
-    
-    <rect x="180" y="240" width="24" height="24" fill="#2563eb"/>
-    <rect x="220" y="240" width="24" height="24" fill="#2563eb"/>
-    <rect x="268" y="240" width="24" height="24" fill="#2563eb"/>
-    <rect x="308" y="240" width="24" height="24" fill="#2563eb"/>
-    
-    <rect x="180" y="280" width="24" height="24" fill="#2563eb"/>
-    <rect x="220" y="280" width="24" height="24" fill="#2563eb"/>
-    <rect x="268" y="280" width="24" height="24" fill="#2563eb"/>
-    <rect x="308" y="280" width="24" height="24" fill="#2563eb"/>
-    
-    <rect x="180" y="320" width="24" height="24" fill="#2563eb"/>
-    <rect x="220" y="320" width="24" height="24" fill="#2563eb"/>
-    <rect x="268" y="320" width="24" height="24" fill="#2563eb"/>
-    <rect x="308" y="320" width="24" height="24" fill="#2563eb"/>
-    
-    <!-- Door -->
-    <rect x="240" y="380" width="32" height="52" fill="#2563eb"/>
-    
-    <!-- Letter K -->
-    <g fill="#ffffff" font-family="Arial, sans-serif" font-weight="bold" font-size="120">
-      <text x="256" y="140" text-anchor="middle" dominant-baseline="middle">K</text>
-    </g>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#2563eb"/>
+  <text x="256" y="280" text-anchor="middle" fill="white" font-family="sans-serif" font-size="120" font-weight="bold">K</text>
+  <text x="256" y="380" text-anchor="middle" fill="white" font-family="sans-serif" font-size="36">System</text>
 </svg>
