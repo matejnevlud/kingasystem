@@ -2,145 +2,61 @@
 
 import { useState, useEffect } from 'react';
 
-export interface PWADetectionResult {
+interface PWADetection {
   isPWA: boolean;
   isStandalone: boolean;
-  isFullscreen: boolean;
-  isBrowser: boolean;
+  isMobile: boolean;
   isIOS: boolean;
-  isAndroid: boolean;
   isSafari: boolean;
   isChrome: boolean;
-  displayMode: 'browser' | 'standalone' | 'fullscreen' | 'minimal-ui';
+  isAndroid: boolean;
   canInstall: boolean;
+  showInstallPrompt: boolean;
 }
 
-export function usePWADetection(): PWADetectionResult {
-  const [detection, setDetection] = useState<PWADetectionResult>({
+export function usePWADetection(): PWADetection {
+  const [detection, setDetection] = useState<PWADetection>({
     isPWA: false,
     isStandalone: false,
-    isFullscreen: false,
-    isBrowser: true,
+    isMobile: false,
     isIOS: false,
-    isAndroid: false,
     isSafari: false,
     isChrome: false,
-    displayMode: 'browser',
+    isAndroid: false,
     canInstall: false,
+    showInstallPrompt: false,
   });
-  
-  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    // Set client flag to avoid hydration issues
-    setIsClient(true);
+    if (typeof window === 'undefined') return;
+
+    const userAgent = window.navigator.userAgent;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                        (window.navigator as any).standalone === true ||
+                        window.matchMedia('(display-mode: fullscreen)').matches;
     
-    const detectEnvironment = () => {
-      if (typeof window === 'undefined') return;
-      
-      const userAgent = navigator.userAgent.toLowerCase();
-      const isIOS = /iphone|ipad|ipod/.test(userAgent);
-      const isAndroid = /android/.test(userAgent);
-      const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent);
-      const isChrome = /chrome/.test(userAgent);
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+    const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
+    const isChrome = /Chrome/.test(userAgent) && !/Edge/.test(userAgent);
+    const isAndroid = /Android/.test(userAgent);
 
-      // Check if running as PWA
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-      const isFullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
-      
-      // iOS specific PWA detection
-      const isIOSStandalone = isIOS && (window.navigator as any).standalone === true;
-      
-      // Combined PWA detection
-      const isPWA = isStandalone || isFullscreen || isIOSStandalone;
-      
-      // Determine display mode
-      let displayMode: PWADetectionResult['displayMode'] = 'browser';
-      if (isFullscreen) displayMode = 'fullscreen';
-      else if (isStandalone || isIOSStandalone) displayMode = 'standalone';
-      else if (window.matchMedia('(display-mode: minimal-ui)').matches) displayMode = 'minimal-ui';
+    const isPWA = isStandalone;
+    const canInstall = !isPWA && isMobile;
+    const showInstallPrompt = canInstall && !localStorage.getItem('pwa-install-dismissed');
 
-      // Check if app can be installed (beforeinstallprompt support)
-      const canInstall = 'BeforeInstallPromptEvent' in window || 
-                        ('serviceWorker' in navigator && !isPWA);
-
-      setDetection({
-        isPWA,
-        isStandalone: isStandalone || isIOSStandalone,
-        isFullscreen,
-        isBrowser: !isPWA,
-        isIOS,
-        isAndroid,
-        isSafari,
-        isChrome,
-        displayMode,
-        canInstall: canInstall && !isPWA,
-      });
-    };
-
-    // Initial detection
-    detectEnvironment();
-
-    // Listen for display mode changes
-    const mediaQueries = [
-      window.matchMedia('(display-mode: standalone)'),
-      window.matchMedia('(display-mode: fullscreen)'),
-      window.matchMedia('(display-mode: minimal-ui)'),
-    ];
-
-    const handleDisplayModeChange = () => {
-      detectEnvironment();
-    };
-
-    mediaQueries.forEach(mq => {
-      if (mq.addEventListener) {
-        mq.addEventListener('change', handleDisplayModeChange);
-      } else {
-        // Fallback for older browsers
-        mq.addListener(handleDisplayModeChange);
-      }
+    setDetection({
+      isPWA,
+      isStandalone,
+      isMobile,
+      isIOS,
+      isSafari,
+      isChrome,
+      isAndroid,
+      canInstall,
+      showInstallPrompt,
     });
-
-    // Cleanup
-    return () => {
-      mediaQueries.forEach(mq => {
-        if (mq.removeEventListener) {
-          mq.removeEventListener('change', handleDisplayModeChange);
-        } else {
-          // Fallback for older browsers
-          mq.removeListener(handleDisplayModeChange);
-        }
-      });
-    };
   }, []);
 
-  // Return safe defaults during SSR to prevent hydration mismatches
-  if (!isClient) {
-    return {
-      isPWA: false,
-      isStandalone: false,
-      isFullscreen: false,
-      isBrowser: true,
-      isIOS: false,
-      isAndroid: false,
-      isSafari: false,
-      isChrome: false,
-      displayMode: 'browser',
-      canInstall: false,
-    };
-  }
-
   return detection;
-}
-
-// Helper function to get display mode as a string for debugging
-export function getDisplayModeString(detection: PWADetectionResult): string {
-  if (detection.isFullscreen) return 'Fullscreen PWA';
-  if (detection.isStandalone) return 'Standalone PWA';
-  if (detection.isBrowser) {
-    if (detection.isSafari) return 'Safari Browser';
-    if (detection.isChrome) return 'Chrome Browser';
-    return 'Browser';
-  }
-  return 'Unknown';
 }

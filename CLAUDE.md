@@ -56,19 +56,6 @@ Pages are controlled through the `PageAccess` model with these permissions:
 - `pgBusiness`: Business planning page
 - `pgAdmin`: System administration (user management)
 
-### UI and Styling
-- **Tailwind CSS 4**: Modern utility-first CSS framework for styling
-- **Flowbite React**: Component library for UI elements (requires post-install patch)
-- **TypeScript**: Full type safety across the application
-- **Responsive Design**: Mobile-first approach with responsive layouts
-
-### Key Development Patterns
-- **Server Components**: Uses Next.js 15 server components by default
-- **Client Components**: Marked with 'use client' directive when needed for interactivity
-- **Session Management**: Cookie-based sessions accessed via `/api/auth/session`
-- **File Uploads**: Custom ImageUpload component for expense receipt handling
-- **Permission Checks**: Pages check user permissions on both client and server side
-
 ### Progressive Web App (PWA) Features
 - **Web App Manifest**: `/public/manifest.json` defines app metadata, icons, and behavior
 - **Service Worker**: `/public/sw.js` provides basic caching and offline functionality
