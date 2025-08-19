@@ -3,7 +3,6 @@
 import {useState, useEffect} from 'react';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
-import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 
 // Define the type for page access permissions
 type PageAccess = {
@@ -153,7 +152,6 @@ export default function MenuPage() {
                     </div>
                 </div>
             </div>
-            <PWAInstallPrompt />
         </div>
     );
 }
