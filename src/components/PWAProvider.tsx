@@ -29,11 +29,7 @@ export function PWAProvider({ children }: PWAProviderProps) {
     const standalone = window.matchMedia('(display-mode: standalone)').matches;
     setIsStandalone(standalone);
 
-    // Check localStorage to see if modal was already shown
-    const modalShown = localStorage.getItem('pwa-install-modal-shown');
-    setHasShownModal(!!modalShown);
-
-    console.log('PWA Provider initialized:', { standalone, modalShown, hasShownModal: !!modalShown });
+    console.log('PWA Provider initialized:', { standalone });
 
     // Listen for the beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -54,11 +50,10 @@ export function PWAProvider({ children }: PWAProviderProps) {
 
     // Show modal after a delay if not in standalone mode and not shown before
     let timer: NodeJS.Timeout | null = null;
-    if (!standalone && !modalShown) {
+    if (!standalone) {
       timer = setTimeout(() => {
         console.log('Showing PWA install modal');
         setShowModal(true);
-        localStorage.setItem('pwa-install-modal-shown', 'true');
         setHasShownModal(true);
       }, 1000); // Show after 1 second
     }
