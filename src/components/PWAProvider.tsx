@@ -25,7 +25,7 @@ export function PWAProvider({ children }: PWAProviderProps) {
   const [hasShownModal, setHasShownModal] = useState(() => {
     // Check localStorage for previously dismissed modal
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('pwa-modal-dismissed') === 'true';
+      //return localStorage.getItem('pwa-modal-dismissed') === 'true';
     }
     return false;
   });
@@ -76,12 +76,9 @@ export function PWAProvider({ children }: PWAProviderProps) {
     if (!standalone) {
       timer = setTimeout(() => {
         // Only show if we have an install prompt and haven't shown before
-        if (deferredPrompt && !hasShownModal) {
-          console.log('Showing PWA install modal');
-          setShowModal(true);
-          setHasShownModal(true);
-        }
-      }, 2000); // Show after 2 seconds to give time for install prompt detection
+        setShowModal(true);
+        setHasShownModal(true);
+      }, 1000); // Show after 2 seconds to give time for install prompt detection
     }
 
     return () => {
@@ -103,7 +100,7 @@ export function PWAProvider({ children }: PWAProviderProps) {
     setHasShownModal(true); // Mark as shown so it doesn't appear again
     // Save to localStorage to persist across sessions
     if (typeof window !== 'undefined') {
-      localStorage.setItem('pwa-modal-dismissed', 'true');
+      //localStorage.setItem('pwa-modal-dismissed', 'true');
     }
   };
 

@@ -5,9 +5,12 @@
   "start_url": "/",
   "display": "fullscreen",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "theme_color": "#ffffff",
   "orientation": "portrait-primary",
   "scope": "/",
+  "user_preferences": {
+    "color_scheme": "light"
+  },
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
