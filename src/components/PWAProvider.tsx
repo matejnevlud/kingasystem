@@ -22,13 +22,25 @@ export function PWAProvider({ children }: PWAProviderProps) {
   const [isInstallable, setIsInstallable] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [hasShownModal, setHasShownModal] = useState(false);
+  const [hasShownModal, setHasShownModal] = useState(() => {
+    // Check localStorage for previously dismissed modal
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('pwa-modal-dismissed') === 'true';
+    }
+    return false;
+  });
 
   useEffect(() => {
-    // Check if app is running in standalone mode
-    const standalone = window.matchMedia('(display-mode: standalone)').matches;
-    setIsStandalone(standalone);
+    // Check if app is running in standalone mode (comprehensive detection)
+    const checkStandalone = () => {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      const isInWebAppiOS = (window.navigator as any).standalone === true;
+      const standalone = isStandalone || isInWebAppiOS;
+      setIsStandalone(standalone);
+      return standalone;
+    };
 
+    const standalone = checkStandalone();
     console.log('PWA Provider initialized:', { standalone });
 
     // Listen for the beforeinstallprompt event
@@ -45,27 +57,42 @@ export function PWAProvider({ children }: PWAProviderProps) {
       setShowModal(false);
     };
 
+    // Listen for display mode changes
+    const handleDisplayModeChange = () => {
+      const newStandalone = checkStandalone();
+      if (newStandalone) {
+        setShowModal(false);
+      }
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    // Show modal after a delay if not in standalone mode and not shown before
+    const mediaQuery = window.matchMedia('(display-mode: standalone)');
+    mediaQuery.addListener(handleDisplayModeChange);
+
+    // Only show modal if not in standalone mode and app is installable
     let timer: NodeJS.Timeout | null = null;
     if (!standalone) {
       timer = setTimeout(() => {
-        console.log('Showing PWA install modal');
-        setShowModal(true);
-        setHasShownModal(true);
-      }, 1000); // Show after 1 second
+        // Only show if we have an install prompt and haven't shown before
+        if (deferredPrompt && !hasShownModal) {
+          console.log('Showing PWA install modal');
+          setShowModal(true);
+          setHasShownModal(true);
+        }
+      }, 2000); // Show after 2 seconds to give time for install prompt detection
     }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
+      mediaQuery.removeListener(handleDisplayModeChange);
       if (timer) {
         clearTimeout(timer);
       }
     };
-  }, []);
+  }, [hasShownModal, deferredPrompt]);
 
   const showInstallModal = () => {
     setShowModal(true);
@@ -73,6 +100,11 @@ export function PWAProvider({ children }: PWAProviderProps) {
 
   const hideInstallModal = () => {
     setShowModal(false);
+    setHasShownModal(true); // Mark as shown so it doesn't appear again
+    // Save to localStorage to persist across sessions
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('pwa-modal-dismissed', 'true');
+    }
   };
 
   const installApp = async () => {

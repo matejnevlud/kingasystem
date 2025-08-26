@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, FormEvent} from 'react';
+import {useState, FormEvent, useEffect} from 'react';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
 
@@ -9,7 +9,28 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [checkingAuth, setCheckingAuth] = useState(true);
     const router = useRouter();
+
+    // Check if user is already logged in
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const response = await fetch('/api/auth/session');
+                if (response.ok) {
+                    // User is already logged in, redirect to menu
+                    router.push('/menu');
+                    return;
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+            } finally {
+                setCheckingAuth(false);
+            }
+        };
+
+        checkAuth();
+    }, [router]);
 
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
@@ -44,6 +65,24 @@ export default function LoginPage() {
         } finally {
             setLoading(false);
         }
+    }
+
+    // Show loading while checking authentication
+    if (checkingAuth) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-md w-full space-y-8">
+                    <div className="text-center">
+                        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                            Kinga System
+                        </h2>
+                        <p className="mt-2 text-center text-sm text-gray-600">
+                            Checking authentication...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (
