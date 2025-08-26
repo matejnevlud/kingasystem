@@ -14,7 +14,7 @@ export default function PWAInstallModal({ show, onClose }: PWAInstallModalProps)
   useEffect(() => {
     // Check if device is iOS
     const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    setIsIOS(iOS);
+    setIsIOS(true);
 
     // Check if app is already in standalone mode
     const standalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -67,8 +67,16 @@ export default function PWAInstallModal({ show, onClose }: PWAInstallModalProps)
                       Tap the Share button
                     </span>
                     <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg">
-                      <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
+
+                      <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" viewBox="0 0 48 48" version="1.1" xmlns="http://www.w3.org/2000/svg">
+
+                          <g id="🔍-Product-Icons" stroke="none" stroke-width="1.5" fill="none" fill-rule="evenodd">
+                              <g id="ic_fluent_share_ios_48_regular" fill="#212121" fill-rule="nonzero">
+                                  <path d="M37.75,20.75 C38.3972087,20.75 38.9295339,21.2418747 38.9935464,21.8721948 L39,22 L39,36.75 C39,39.5770076 36.7655511,41.8821316 33.9664046,41.995621 L33.75,42 L14.25,42 C11.4229924,42 9.11786837,39.7655511 9.00437905,36.9664046 L9,36.75 L9,22 C9,21.3096441 9.55964406,20.75 10.25,20.75 C10.8972087,20.75 11.4295339,21.2418747 11.4935464,21.8721948 L11.5,22 L11.5,36.75 C11.5,38.2125318 12.6417046,39.4084043 14.0824777,39.4949812 L14.25,39.5 L33.75,39.5 C35.2125318,39.5 36.4084043,38.3582954 36.4949812,36.9175223 L36.5,36.75 L36.5,22 C36.5,21.3096441 37.0596441,20.75 37.75,20.75 Z M15.0903301,14.1442911 L22.8685047,6.36611652 C23.3241164,5.91050485 24.0439368,5.88013074 24.5347763,6.27499419 L24.6362716,6.36611652 L32.4144462,14.1442911 C32.9026016,14.6324465 32.9026016,15.4239027 32.4144462,15.9120581 C31.9588346,16.3676697 31.2390141,16.3980439 30.7481746,16.0031804 L30.6466793,15.9120581 L25,10.265 L25,30.5 C25,31.1472087 24.5081253,31.6795339 23.8778052,31.7435464 L23.75,31.75 C23.1027913,31.75 22.5704661,31.2581253 22.5064536,30.6278052 L22.5,30.5 L22.5,10.269 L16.858097,15.9120581 C16.4024854,16.3676697 15.6826649,16.3980439 15.1918254,16.0031804 L15.0903301,15.9120581 C14.6347184,15.4564464 14.6043443,14.736626 14.9992078,14.2457865 L15.0903301,14.1442911 L22.8685047,6.36611652 L15.0903301,14.1442911 Z" id="🎨-Color">
+
+                      </path>
+                              </g>
+                          </g>
                       </svg>
                     </div>
                   </div>
@@ -78,44 +86,6 @@ export default function PWAInstallModal({ show, onClose }: PWAInstallModalProps)
                 </div>
               </div>
 
-              {/* Safari mockup */}
-              <div className="bg-gray-100 dark:bg-gray-700 rounded-xl p-4 my-4">
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                  {/* Safari header */}
-                  <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-900 rounded-t-lg border-b border-gray-200 dark:border-gray-600">
-                    <div className="flex space-x-2">
-                      <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                      <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">Safari</div>
-                  </div>
-                  {/* Safari toolbar */}
-                  <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 rounded-b-lg">
-                    <div className="flex space-x-6">
-                      <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0L3.586 12l2.707-2.707a1 1 0 011.414 1.414L6.414 12l1.293 1.293a1 1 0 010 1.414z" clipRule="evenodd" />
-                      </svg>
-                      <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l3.707 3.707-3.707 3.707a1 1 0 01-1.414-1.414L14.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="bg-blue-500 p-2 rounded-lg animate-pulse">
-                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
-                      </svg>
-                    </div>
-                    <div className="flex space-x-6">
-                      <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zM12 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1V4zM12 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-3z" clipRule="evenodd" />
-                      </svg>
-                      <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               {/* Step 2 */}
               <div className="flex items-start space-x-4">
@@ -129,12 +99,7 @@ export default function PWAInstallModal({ show, onClose }: PWAInstallModalProps)
                     <span className="text-sm font-medium text-gray-900 dark:text-white">
                       Scroll down and tap "Add to Home Screen"
                     </span>
-                    <div className="bg-gray-50 dark:bg-gray-700 px-3 py-1 rounded-lg flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                      </svg>
-                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Add to Home Screen</span>
-                    </div>
+                    
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     You may need to scroll down in the share menu to find this option
@@ -143,39 +108,8 @@ export default function PWAInstallModal({ show, onClose }: PWAInstallModalProps)
               </div>
 
               {/* Step 3 */}
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    3
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                      Tap "Add" to confirm
-                    </span>
-                    <div className="bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-lg">
-                      <span className="text-xs font-medium text-blue-600 dark:text-blue-400">Add</span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    The app will be added to your home screen and can be opened like any other app
-                  </p>
-                </div>
-              </div>
-
-              {/* Benefits */}
-              <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 mt-6">
-                <h4 className="font-medium text-green-900 dark:text-green-100 text-sm mb-2">
-                  ✨ Benefits of installing:
-                </h4>
-                <ul className="text-xs text-green-700 dark:text-green-300 space-y-1">
-                  <li>• Full screen experience (no Safari interface)</li>
-                  <li>• Faster loading and offline access</li>
-                  <li>• Quick access from your home screen</li>
-                  <li>• Native app-like experience</li>
-                </ul>
-              </div>
+              
+              
             </div>
           ) : (
             <div className="space-y-4 text-center">
