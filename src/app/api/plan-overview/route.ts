@@ -189,13 +189,17 @@ export async function GET(request: NextRequest) {
             },
         });
 
-        // Calculate budget direct (assuming it's revenue minus margin)
-        const budgetDirect = budgetRevenue * 0.6; // Assuming 60% direct costs, adjust as needed
-
         // Calculate other budget totals (proportional to revenue ratio)
         const totalPlannedRevenue = allBusinessPlans.reduce((sum, plan) => sum + plan.revenue, 0);
         const revenueRatio = totalPlannedRevenue > 0 ? budgetRevenue / totalPlannedRevenue : 0;
-        const budgetIndirect = budgetDirect * (allBusinessPlans.reduce((sum, plan) => sum + plan.indirectPerc, 0) / allBusinessPlans.length) / 100;
+        
+        // Calculate budget direct using stored directPerc from business plans
+        const averageDirectPerc = allBusinessPlans.length > 0 
+            ? (allBusinessPlans.reduce((sum, plan) => sum + (plan.directPerc || 60), 0) / allBusinessPlans.length) 
+            : 60;
+        const budgetDirect = budgetRevenue * averageDirectPerc / 100;
+        
+        const budgetIndirect = budgetRevenue * (allBusinessPlans.reduce((sum, plan) => sum + plan.indirectPerc, 0) / allBusinessPlans.length) / 100;
         const budgetFix = allBusinessPlans.reduce((sum, plan) => sum + plan.tax, 0) * revenueRatio;
         const budgetOoc = allBusinessPlans.reduce((sum, plan) => sum + plan.ooc, 0) * revenueRatio;
         const budgetExpenses = budgetIndirect + budgetFix + budgetOoc;

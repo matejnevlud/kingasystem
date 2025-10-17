@@ -21,6 +21,7 @@ type BusinessPlan = {
     year: number;
     month: number;
     revenue: number;
+    directPerc: number;
     indirectPerc: number;
     tax: number;
     ooc: number;
@@ -171,8 +172,9 @@ export default function BusinessPlanPage() {
 
         const fieldLabels: { [key: string]: string } = {
             revenue: 'Revenue',
-            tax: 'Fix',
+            directPerc: 'Direct (%)',
             indirectPerc: 'Indirect (%)',
+            tax: 'Fix',
             ooc: 'OOC'
         };
 
@@ -202,6 +204,7 @@ export default function BusinessPlanPage() {
                 month: selectedMonth,
                 unitId: modalData.unitId,
                 revenue: modalData.field === 'revenue' ? numericValue : (currentPlan?.revenue || 0),
+                directPerc: modalData.field === 'directPerc' ? numericValue : (currentPlan?.directPerc || 60),
                 indirectPerc: modalData.field === 'indirectPerc' ? numericValue : (currentPlan?.indirectPerc || 0),
                 tax: modalData.field === 'tax' ? numericValue : (currentPlan?.tax || 0),
                 ooc: modalData.field === 'ooc' ? numericValue : (currentPlan?.ooc || 0),
@@ -349,8 +352,9 @@ export default function BusinessPlanPage() {
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fix</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Direct (%)</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Indirect (%)</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fix</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">OOC</th>
                                 </tr>
                                 </thead>
@@ -366,10 +370,13 @@ export default function BusinessPlanPage() {
                                                 {renderClickableCell(unit.id, 'revenue', businessPlan?.revenue)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {renderClickableCell(unit.id, 'tax', businessPlan?.tax)}
+                                                {renderClickableCell(unit.id, 'directPerc', businessPlan?.directPerc, true)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                 {renderClickableCell(unit.id, 'indirectPerc', businessPlan?.indirectPerc, true)}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {renderClickableCell(unit.id, 'tax', businessPlan?.tax)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                 {renderClickableCell(unit.id, 'ooc', businessPlan?.ooc)}
@@ -386,7 +393,7 @@ export default function BusinessPlanPage() {
                 {/* Fixed Footer with Instructions */}
                 <div className="flex-shrink-0 bg-blue-50 border-t border-blue-200 p-4">
                     <p className="text-blue-700 text-sm">
-                        <strong>Instructions:</strong> Click on any cell in the Revenue, Fix, Indirect (%), or OOC columns to edit.
+                        <strong>Instructions:</strong> Click on any cell in the Revenue, Direct (%), Indirect (%), Fix, or OOC columns to edit.
                         A modal will open where you can enter the new value. Changes are automatically saved to the database.
                     </p>
                 </div>

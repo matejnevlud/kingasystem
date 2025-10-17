@@ -107,11 +107,11 @@ export async function POST(request: NextRequest) {
         const session = JSON.parse(sessionCookie.value);
         const userId = session.userId;
 
-        const {year, month, unitId, revenue, indirectPerc, tax, ooc} = await request.json();
+        const {year, month, unitId, revenue, directPerc, indirectPerc, tax, ooc} = await request.json();
 
-        if (!year || !month || !unitId || revenue === undefined || indirectPerc === undefined || tax === undefined || ooc === undefined) {
+        if (!year || !month || !unitId || revenue === undefined || directPerc === undefined || indirectPerc === undefined || tax === undefined || ooc === undefined) {
             return NextResponse.json(
-                {error: 'Year, month, unitId, revenue, indirectPerc, tax, and ooc are required'},
+                {error: 'Year, month, unitId, revenue, directPerc, indirectPerc, tax, and ooc are required'},
                 {status: 400}
             );
         }
@@ -140,6 +140,7 @@ export async function POST(request: NextRequest) {
                 month: parseInt(month),
                 idUnit: parseInt(unitId),
                 revenue: parseInt(revenue),
+                directPerc: parseFloat(directPerc),
                 indirectPerc: parseFloat(indirectPerc),
                 tax: parseInt(tax),
                 ooc: parseInt(ooc),
@@ -181,11 +182,11 @@ export async function PUT(request: NextRequest) {
         const session = JSON.parse(sessionCookie.value);
         const userId = session.userId;
 
-        const {year, month, unitId, revenue, indirectPerc, tax, ooc} = await request.json();
+        const {year, month, unitId, revenue, directPerc, indirectPerc, tax, ooc} = await request.json();
 
-        if (!year || !month || !unitId || revenue === undefined || indirectPerc === undefined || tax === undefined || ooc === undefined) {
+        if (!year || !month || !unitId || revenue === undefined || directPerc === undefined || indirectPerc === undefined || tax === undefined || ooc === undefined) {
             return NextResponse.json(
-                {error: 'Year, month, unitId, revenue, indirectPerc, tax, and ooc are required'},
+                {error: 'Year, month, unitId, revenue, directPerc, indirectPerc, tax, and ooc are required'},
                 {status: 400}
             );
         }
@@ -230,6 +231,7 @@ export async function PUT(request: NextRequest) {
             },
             data: {
                 revenue: parseInt(revenue),
+                directPerc: parseFloat(directPerc),
                 indirectPerc: parseFloat(indirectPerc),
                 tax: parseInt(tax),
                 ooc: parseInt(ooc),

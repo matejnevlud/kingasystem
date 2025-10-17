@@ -108,6 +108,7 @@ model BusinessPlan {
   year         Int   @map("Year")
   month        Int   @default(1) @map("Month") // 1-12
   revenue      Int   @map("Revenue")
+  directPerc   Float @default(60) @map("DirectPerc")
   indirectPerc Float @map("IndirectPerc")
   tax          Int   @map("Tax")
   ooc          Int   @map("OOC")
