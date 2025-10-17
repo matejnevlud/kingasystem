@@ -202,7 +202,7 @@ export async function GET(request: NextRequest) {
         const budgetIndirect = budgetRevenue * (allBusinessPlans.reduce((sum, plan) => sum + plan.indirectPerc, 0) / allBusinessPlans.length) / 100;
         const budgetFix = allBusinessPlans.reduce((sum, plan) => sum + plan.tax, 0) * revenueRatio;
         const budgetOoc = allBusinessPlans.reduce((sum, plan) => sum + plan.ooc, 0) * revenueRatio;
-        const budgetExpenses = budgetIndirect + budgetFix + budgetOoc;
+        const budgetExpenses = budgetIndirect + budgetFix + budgetOoc + budgetDirect;
 
         // Calculate real totals
         const realRevenue = sales.reduce((sum, sale) => sum + (sale.sellPrice * sale.amount), 0);
